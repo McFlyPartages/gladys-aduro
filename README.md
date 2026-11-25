@@ -70,3 +70,14 @@ emitted by the Gladys core (`network_discovery`, `udp-active-broadcast` on port
 ## License
 
 MIT, see [LICENSE](LICENSE).
+
+## Links
+
+- Source code: [github.com/McFlyPartages/gladys-aduro](https://github.com/McFlyPartages/gladys-aduro)
+- Issues and suggestions: [GitHub issues](https://github.com/McFlyPartages/gladys-aduro/issues)
+- User documentation: [English](docs/en.md) · [Français](docs/fr.md)
+- Gladys Assistant: [gladysassistant.com](https://gladysassistant.com/) ·
+  [external integrations](https://gladysassistant.com/fr/docs/dev/external-integrations/)
+- Home Assistant integration this one is ported from:
+  [NewImproved/Aduro](https://github.com/NewImproved/Aduro)
+- NBE protocol library: [clementprevot/pyduro](https://github.com/clementprevot/pyduro)
