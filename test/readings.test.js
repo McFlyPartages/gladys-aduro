@@ -37,9 +37,10 @@ test('the heat level comes from an approximate power percentage', () => {
 });
 
 test('status values are read at their positions', () => {
-  assert.deepEqual(parseStatus(statusPayload({ mode: 1, total: 99.5 })), {
+  assert.deepEqual(parseStatus(statusPayload({ mode: 1, total: 99.5, fixedPower: 50 })), {
     consumption_total: 99.5,
     operation_mode: 1,
+    fixed_power: 50,
   });
 });
 

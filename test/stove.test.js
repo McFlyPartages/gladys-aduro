@@ -321,3 +321,16 @@ test('by default the cloud relay is never used', async () => {
   assert.equal(stove.transport, TRANSPORT.UNREACHABLE);
   assert.ok(client.requests.every((host) => host !== CLOUD_RELAY));
 });
+
+test('heat level mode: the level is the chosen one, not the measured one', async () => {
+  const client = new FakeClient();
+  client.state.fixedPower = 100;
+  client.state.operating = { power_pct: '48' }; // measured: level II
+  const { stove } = setup({ client });
+  await stove.poll();
+  assert.equal(stove.data.operating.heat_level, 3);
+  assert.equal(stove.data.operating.measured_level, 2);
+  client.state.mode = 1; // temperature mode: the stove picks, measured it is
+  await stove.poll();
+  assert.equal(stove.data.operating.heat_level, 2);
+});

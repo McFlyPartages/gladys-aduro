@@ -132,13 +132,21 @@ level: it is only right when "Pellets refilled" is pressed after each refill.
 
 Two widgets can be added from the dashboard editor.
 
-**Aduro stove**: a drawing of the stove whose fire moves with the heat level
-(small, medium or large flame), with logs burning in wood mode and a dark glass
-when the stove is off. Below it:
+**Aduro stove**: a drawing of the stove that follows its state:
+
+- **ignition**: the burn pot glows, smoke rises, the light blinks, no flame
+  yet;
+- **heating**: small, medium or large flame by the chosen heat level (I, II,
+  III; in temperature mode, the one the stove picked itself);
+- **wood mode**: logs burning;
+- **off or waiting** (room warm enough): dark glass.
+
+Below it:
 
 - the **fire** (smoke) and **room** temperatures, live;
 - the state, the detail (ignition countdown) and the mode;
-- four buttons: **Start / Stop** (stopping asks for a confirmation), **Small
+- four buttons: **Start the stove / Stop the stove** (stopping asks for a
+  confirmation), **Small
   flame**, **Medium flame**, **Large flame**. A flame switches the stove to
   heat level mode; the button of the current level is highlighted.
 

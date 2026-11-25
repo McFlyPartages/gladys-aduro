@@ -56,7 +56,7 @@ gladys.onSetValue(async (device, feature, value) => {
 gladys.onWidgetGet(WIDGET.STOVE, (options) => bridge.widget(WIDGET.STOVE, options));
 gladys.onWidgetGet(WIDGET.STATS, (options) => bridge.widget(WIDGET.STATS, options));
 gladys.onWidgetGetImage((key) => loadImage(key));
-gladys.onWidgetAction(WIDGET.STOVE, (actionKey, params) => bridge.widgetAction(actionKey, params));
+gladys.onWidgetAction(WIDGET.STOVE, (actionKey) => bridge.widgetAction(actionKey));
 
 // --- Device lifecycle --------------------------------------------------------
 // States sent before the user created the device were dropped by Gladys.

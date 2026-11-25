@@ -37,6 +37,7 @@ import {
   RUNNING_STATES,
   STOPPED_STATES,
   WOOD_STATE,
+  heatLevelFromPower,
   parseConsumption,
   parseNetwork,
   parseOperating,
@@ -271,6 +272,18 @@ export class Stove {
     try {
       const status = parseStatus((await this.client.getStatus(this.host)).payload);
       const operating = parseOperating((await this.client.getOperating(this.host)).payload);
+      // In heat level mode the level shown and followed is the one chosen
+      // (regulation.fixed_power, exact) rather than the one measured from an
+      // approximate power percentage. In temperature mode the stove picks
+      // its own level: the measured one is all there is.
+      if (status.operation_mode === OPERATION_MODE.HEAT_LEVEL && status.fixed_power > 0) {
+        operating.heat_level = heatLevelFromPower(status.fixed_power);
+      }
+      logger.debug(
+        `state ${operating.state}/${operating.substate}, mode ${status.operation_mode}, ` +
+          `fixed_power ${status.fixed_power}, power_pct ${operating.power_pct}, ` +
+          `level ${operating.heat_level} (measured ${operating.measured_level})`,
+      );
       this.data.status = status;
       this.data.operating = operating;
       if (this.due(this.lastNetworkRead, TIMING.NETWORK_REFRESH_MS)) {

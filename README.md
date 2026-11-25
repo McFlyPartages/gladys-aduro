@@ -1,9 +1,11 @@
 # gladys-aduro
 
+**English** · [Français](README.fr.md)
+
 [Gladys Assistant](https://gladysassistant.com/) external integration for
 Aduro hybrid pellet stoves (H1 to H6). Local first: Gladys talks to the stove
-with the NBE protocol of the Aduro Hybrid app (UDP 8483), the Aduro cloud
-relay being an optional fallback.
+with the NBE protocol of the Aduro Hybrid app (UDP 8483). The Aduro cloud
+relay is an optional fallback, off by default.
 
 User documentation: [English](docs/en.md) · [Français](docs/fr.md).
 
@@ -17,9 +19,23 @@ Start/stop, heat level, target temperature, operation mode (with retries until
 the stove applies the change), temperatures, heat output, carbon monoxide,
 state texts, consumption, pellets left, automatic stop at low pellets,
 automatic return to pellets after wood mode, forced fan and auger, scene
-triggers for the alerts, two dashboard widgets (animated stove, statistics), pellets run-out prediction in heat level mode. The
-temperature mode prediction of the Home Assistant integration (heating cycles,
-weather forecast) is not ported.
+triggers for the alerts, two dashboard widgets (animated stove, statistics),
+pellets run-out prediction in heat level mode. The temperature mode prediction
+of the Home Assistant integration (heating cycles, weather forecast) is not
+ported.
+
+## Try a test build
+
+1. On GitHub, **Actions → Build and publish image → Run workflow** on the
+   branch to try. The image is published as
+   `ghcr.io/mcflypartages/gladys-aduro:<branch>`.
+2. The build summary shows the **manifest to paste**, its `docker_image`
+   already pointing at that image.
+3. The image must be pullable without credentials: make the package public
+   (**Packages → gladys-aduro → Package settings → Change visibility**).
+4. In Gladys (5.1.0 or later): **Integrations → Install an integration →
+   Developer mode**, paste the manifest.
+5. Configure the integration following the [documentation](docs/en.md).
 
 ## Development
 

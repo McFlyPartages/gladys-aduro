@@ -45,6 +45,8 @@ export function parseStatus(payload) {
   return {
     consumption_total: number(values[STATUS_INDEX.consumption_total]),
     operation_mode: Math.trunc(number(values[STATUS_INDEX.operation_mode])),
+    // The power the user set (10 / 50 / 100 %), not what the stove burns now.
+    fixed_power: number(values[STATUS_INDEX.fixed_power]),
   };
 }
 
@@ -64,7 +66,10 @@ export function parseOperating(payload) {
     substate: values[5],
     power_kw: number(values[31]),
     power_pct: powerPercent,
+    // Measured level; replaced by the chosen one in heat level mode (see
+    // Stove.poll), kept as `measured_level` for the diagnostics.
     heat_level: heatLevelFromPower(Math.trunc(powerPercent)),
+    measured_level: heatLevelFromPower(Math.trunc(powerPercent)),
     shaft_temp: number(values[35]),
     smoke_temp: number(values[37]),
     carbon_monoxide: number(values[26]),
