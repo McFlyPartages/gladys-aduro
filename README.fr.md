@@ -2,6 +2,8 @@
 
 [English](README.md) · **Français**
 
+![Aduro pour Gladys Assistant](docs/images/cover.png)
+
 Intégration externe [Gladys Assistant](https://gladysassistant.com/) pour les
 poêles hybrides à granulés Aduro (H1 à H6). Tout se passe en local : Gladys
 parle au poêle avec le protocole NBE de l'application Aduro Hybrid (UDP 8483).

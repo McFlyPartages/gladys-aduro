@@ -12,6 +12,7 @@
 // -----------------------------------------------------------------------------
 
 import { mkdir, writeFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 import sharp from 'sharp';
 
 const WIDTH = 800;
@@ -152,7 +153,15 @@ function ignition(phase) {
   );
 }
 
-function frame({ level, wood, ignition: igniting }, index) {
+/**
+ * SVG of one frame. `view` crops the scene (viewBox), `size` sets the pixel
+ * size: the presentation picture reuses it at a higher definition.
+ */
+export function frame(
+  { level, wood, ignition: igniting },
+  index,
+  { view = VIEW, size = [WIDTH, HEIGHT] } = {},
+) {
   const phase = (TAU * index) / FRAMES;
   const burning = level > 0 || wood;
   const flicker = 0.85 + 0.15 * Math.sin(phase * 2) * Math.sin(phase * 3 + 1);
@@ -186,7 +195,7 @@ function frame({ level, wood, ignition: igniting }, index) {
     });
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="${VIEW}">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size[0]}" height="${size[1]}" viewBox="${view}">
   <defs>
     <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#3b3430"/><stop offset="1" stop-color="#241f1c"/>
@@ -290,8 +299,11 @@ async function render(name, variant) {
   return webp.length;
 }
 
-await mkdir(new URL('../assets/', import.meta.url), { recursive: true });
-for (const [name, variant] of Object.entries(VARIANTS)) {
-  const bytes = await render(name, variant);
-  console.log(`assets/stove-${name}.webp  ${Math.round(bytes / 1024)} KB`);
+// Imported by another script: only the drawing is wanted.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  await mkdir(new URL('../assets/', import.meta.url), { recursive: true });
+  for (const [name, variant] of Object.entries(VARIANTS)) {
+    const bytes = await render(name, variant);
+    console.log(`assets/stove-${name}.webp  ${Math.round(bytes / 1024)} KB`);
+  }
 }

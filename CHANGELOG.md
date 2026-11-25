@@ -29,5 +29,6 @@ the notes of the version's GitHub Release.
   the igniter and smoke during the ignition, logs in wood mode, fire and room temperatures, on/off and three flame buttons;
   the statistics, pellets, consumption chart per day or per month, learned
   consumption, run-out time, operating times, carbon monoxide.
+- Cover picture for the Gladys integration catalog and the README.
 - Scene triggers: smoke too hot, wood fire dying, low pellets, stopped at low
   pellets, stove fault.
