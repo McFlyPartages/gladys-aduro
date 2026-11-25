@@ -298,8 +298,8 @@ export class Bridge {
   }
 
   /** A button of the stove widget; the next poll comes soon. */
-  async widgetAction(actionKey, params) {
-    const message = await runStoveAction(this.stove, actionKey, params);
+  async widgetAction(actionKey) {
+    const message = await runStoveAction(this.stove, actionKey);
     await this.publishStates();
     this.timers.clearTimeout(this.timer);
     this.timer = this.timers.setTimeout(() => {

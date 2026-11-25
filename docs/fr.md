@@ -142,14 +142,22 @@ utilisé à chaque remplissage.
 
 Deux widgets s'ajoutent depuis l'éditeur du tableau de bord.
 
-**Poêle Aduro** : un dessin du poêle dont le feu bouge au rythme de la
-puissance (petite, moyenne ou grande flamme), avec des bûches qui brûlent en
-mode bois et la vitre éteinte quand le poêle est arrêté. Dessous :
+**Poêle Aduro** : un dessin du poêle qui suit son état :
+
+- **allumage** : le creuset rougeoie, de la fumée monte, le voyant clignote,
+  sans flamme encore ;
+- **en chauffe** : petite, moyenne ou grande flamme selon la puissance choisie
+  (I, II, III ; en mode température, celle que le poêle a choisie lui-même) ;
+- **mode bois** : des bûches qui brûlent ;
+- **à l'arrêt ou en attente** (température atteinte) : vitre éteinte.
+
+Dessous :
 
 - la température du **foyer** (fumées) et la température **ambiante**, en
   direct ;
 - l'état, le détail (compte à rebours d'allumage) et le mode ;
-- quatre boutons : **Allumer / Éteindre** (l'arrêt demande confirmation),
+- quatre boutons : **Allumer le poêle / Éteindre le poêle** (l'arrêt demande
+  confirmation),
   **Petite flamme**, **Flamme moyenne**, **Grande flamme**. Une flamme fait
   passer le poêle en mode puissance ; le bouton de la puissance en cours est
   mis en avant.

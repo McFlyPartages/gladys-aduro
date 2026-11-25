@@ -32,9 +32,10 @@ export function operatingPayload(values = {}) {
 }
 
 /** Payload of function 11 "*" (status values). */
-export function statusPayload({ mode = 0, total = 1234.5 } = {}) {
+export function statusPayload({ mode = 0, total = 1234.5, fixedPower = 0 } = {}) {
   const fields = new Array(116).fill('0');
   fields[92] = String(total);
+  fields[99] = String(fixedPower);
   fields[100] = String(mode);
   return fields.join(',');
 }
@@ -60,6 +61,7 @@ export class FakeClient {
       operating: {},
       mode: 0,
       total: 1234.5,
+      fixedPower: 0,
       days: new Array(31).fill(0),
       months: new Array(12).fill(0),
       ...state,
@@ -80,7 +82,14 @@ export class FakeClient {
   }
 
   getStatus(host) {
-    return this.reply(host, statusPayload({ mode: this.state.mode, total: this.state.total }));
+    return this.reply(
+      host,
+      statusPayload({
+        mode: this.state.mode,
+        total: this.state.total,
+        fixedPower: this.state.fixedPower,
+      }),
+    );
   }
 
   getOperating(host) {
@@ -107,6 +116,7 @@ export class FakeClient {
     if (path === 'regulation.operation_mode') {
       this.state.mode = Number(value);
     } else if (path === 'regulation.fixed_power') {
+      this.state.fixedPower = Number(value);
       this.state.operating = { ...this.state.operating, power_pct: String(value) };
     } else if (path === 'boiler.temp') {
       this.state.operating = { ...this.state.operating, boiler_ref: String(value) };

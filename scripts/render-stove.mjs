@@ -1,7 +1,8 @@
 // -----------------------------------------------------------------------------
 // Renders the pictures of the "Stove" dashboard widget: an original drawing of
-// a pellet stove, its fire animated (animated WebP, looping), in five states:
-// off, flame I, II, III, and logs burning (wood mode).
+// a pellet stove, its fire animated (animated WebP, looping), in six states:
+// off, ignition (the igniter heats the pellets, smoke, no flame yet), flame
+// I, II, III, and logs burning (wood mode).
 //
 //   node scripts/render-stove.mjs        -> assets/stove-*.webp
 //
@@ -28,6 +29,7 @@ const VIEW = '72 36 656 369';
 
 export const VARIANTS = {
   off: { level: 0 },
+  ignition: { level: 0, ignition: true },
   l1: { level: 1 },
   l2: { level: 2 },
   l3: { level: 3 },
@@ -123,18 +125,49 @@ function sparks(phase) {
   return dots;
 }
 
-function frame({ level, wood }, index) {
+/** Pellets in the burn pot, the igniter glowing under them, smoke rising. */
+function ignition(phase) {
+  const heat = 0.55 + 0.45 * Math.sin(phase);
+  let pellets = '';
+  for (let index = 0; index < 16; index += 1) {
+    const x = CX - 22 + (index % 8) * 6 + (index > 7 ? 3 : 0);
+    const y = BASE_Y - 2 - (index > 7 ? 4 : 0);
+    pellets += `<ellipse cx="${x}" cy="${y}" rx="3.2" ry="2.2" fill="${index % 3 ? '#7a5a3a' : '#8d6a45'}"/>`;
+  }
+  let smoke = '';
+  for (let wisp = 0; wisp < 3; wisp += 1) {
+    for (let puff = 0; puff < 6; puff += 1) {
+      const progress = (phase / TAU + puff / 6 + wisp / 3 / 6) % 1;
+      const x = CX - 14 + wisp * 14 + 12 * Math.sin(progress * TAU * 1.5 + wisp * 2);
+      const y = BASE_Y - 10 - progress * 140;
+      const radius = 5 + progress * 16;
+      const opacity = 0.42 * (1 - progress) * Math.min(1, progress * 6);
+      smoke += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(radius)}" fill="#a39d97" opacity="${f(opacity)}"/>`;
+    }
+  }
+  return (
+    `<ellipse cx="${CX}" cy="${BASE_Y + 2}" rx="${f(30 + 8 * heat)}" ry="${f(10 + 3 * heat)}" fill="url(#igniter)" opacity="${f(0.5 + 0.5 * heat)}"/>` +
+    pellets +
+    `<g filter="url(#smoke)">${smoke}</g>`
+  );
+}
+
+function frame({ level, wood, ignition: igniting }, index) {
   const phase = (TAU * index) / FRAMES;
   const burning = level > 0 || wood;
   const flicker = 0.85 + 0.15 * Math.sin(phase * 2) * Math.sin(phase * 3 + 1);
-  const glow = burning ? (wood ? 0.75 : 0.35 + 0.18 * level) * flicker : 0;
+  const glow = burning ? (wood ? 0.75 : 0.35 + 0.18 * level) * flicker : igniting ? 0.12 : 0;
+  // Status light: steady when burning, blinking during the ignition.
+  const light = burning || (igniting && Math.sin(phase) > 0) ? '#ff9a2a' : '#3a3c40';
 
   // A blurred copy of the fire behind it: the light it casts in the chamber.
   const lit = (options) =>
     `<g filter="url(#bloom)" opacity="${f(0.75 * flicker)}">${fire({ ...options, width: options.width * 1.25 })}</g>` +
     `<g filter="url(#soft)">${fire(options)}</g>`;
   let chamber = '';
-  if (wood) {
+  if (igniting) {
+    chamber = ignition(phase);
+  } else if (wood) {
     chamber =
       `<ellipse cx="${CX}" cy="${BASE_Y + 4}" rx="78" ry="16" fill="url(#embers)" opacity="${f(0.8 + 0.2 * Math.sin(phase * 2))}"/>` +
       lit({ cx: CX, baseY: BASE_Y - 6, width: 58, height: 118, tongues: 5, phase, spread: 92 }) +
@@ -183,6 +216,10 @@ function frame({ level, wood }, index) {
     <radialGradient id="embers" cx="0.5" cy="0.5" r="0.5">
       <stop offset="0" stop-color="#ffb347"/><stop offset="0.6" stop-color="#e2461a"/><stop offset="1" stop-color="#5a1a08" stop-opacity="0"/>
     </radialGradient>
+ <radialGradient id="igniter" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffb04a"/><stop offset="0.45" stop-color="#e5411a" stop-opacity="0.8"/><stop offset="1" stop-color="#5a1a08" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="smoke" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.5"/></filter>
     <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.2"/></filter>
     <filter id="bloom" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="9"/></filter>
     <clipPath id="window"><rect x="${WINDOW.x}" y="${WINDOW.y}" width="${WINDOW.w}" height="${WINDOW.h}" rx="${WINDOW.r}"/></clipPath>
@@ -204,8 +241,8 @@ function frame({ level, wood }, index) {
   <rect x="286" y="44" width="228" height="22" rx="8" fill="url(#top)"/>
   <rect x="330" y="50" width="140" height="4" rx="2" fill="#1b1c1f"/>
   <rect x="300" y="76" width="200" height="22" rx="6" fill="#26282c"/>
-  <circle cx="472" cy="87" r="5" fill="${burning ? '#ff9a2a' : '#3a3c40'}"/>
-  <rect x="318" y="83" width="60" height="8" rx="3" fill="${burning ? '#1f6f8f' : '#2f3236'}" opacity="0.9"/>
+  <circle cx="472" cy="87" r="5" fill="${light}"/>
+  <rect x="318" y="83" width="60" height="8" rx="3" fill="${burning || igniting ? '#1f6f8f' : '#2f3236'}" opacity="0.9"/>
 
   <!-- door: frame, chamber, fire, glass -->
   <rect x="${WINDOW.x - 12}" y="${WINDOW.y - 12}" width="${WINDOW.w + 24}" height="${WINDOW.h + 24}" rx="${WINDOW.r + 8}" fill="#121315"/>
@@ -226,8 +263,8 @@ function frame({ level, wood }, index) {
 }
 
 async function render(name, variant) {
-  const burning = variant.level > 0 || variant.wood;
-  const count = burning ? FRAMES : 1;
+  const animated = variant.level > 0 || variant.wood || variant.ignition;
+  const count = animated ? FRAMES : 1;
   const frames = [];
   for (let index = 0; index < count; index += 1) {
     frames.push(

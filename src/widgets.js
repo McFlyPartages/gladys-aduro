@@ -28,8 +28,8 @@ import { FAULT_STATES } from './stove.js';
 export const WIDGET = { STOVE: 'stove', STATS: 'stats' };
 
 // Bumped whenever the pictures change: the core caches an image one hour by key.
-const ASSETS_VERSION = 1;
-const PICTURES = ['off', 'l1', 'l2', 'l3', 'wood'];
+const ASSETS_VERSION = 2;
+const PICTURES = ['off', 'ignition', 'l1', 'l2', 'l3', 'wood'];
 
 export const IMAGE_KEYS = Object.fromEntries(
   PICTURES.map((name) => [`stove-${name}-v${ASSETS_VERSION}`, `stove-${name}.webp`]),
@@ -46,7 +46,16 @@ export async function loadImage(key) {
   return (await readFile(new URL(file, ASSETS))).toString('base64');
 }
 
-/** Which picture shows the stove as it is now. */
+// States with a fire in the chamber. The stove is also "on" while waiting
+// (0) or once the room is warm enough (6), but without a flame.
+const FLAME_STATES = new Set(['5', '24', '32']);
+const IGNITION_STATES = new Set(['2', '4']);
+
+/**
+ * Which picture shows the stove as it is now: the igniter and smoke during
+ * the ignition, then a flame sized by the heat level (the chosen one in heat
+ * level mode), logs in wood mode.
+ */
 export function pictureOf(operating) {
   if (!operating) {
     return 'off';
@@ -54,14 +63,13 @@ export function pictureOf(operating) {
   if (operating.state === WOOD_STATE) {
     return 'wood';
   }
-  if (!RUNNING_STATES.has(operating.state)) {
-    return 'off';
+  if (IGNITION_STATES.has(operating.state)) {
+    return 'ignition';
   }
-  // Ignition: a small flame whatever the level asked.
-  if (operating.state === '2' || operating.state === '4') {
-    return 'l1';
+  if (FLAME_STATES.has(operating.state)) {
+    return `l${operating.heat_level}`;
   }
-  return `l${operating.heat_level}`;
+  return 'off';
 }
 
 const T = {
@@ -72,8 +80,8 @@ const T = {
   detail: { en: 'Detail', fr: 'Détail' },
   mode: { en: 'Mode', fr: 'Mode' },
   target: { en: 'Target', fr: 'Consigne' },
-  start: { en: 'Start', fr: 'Allumer' },
-  stop: { en: 'Stop', fr: 'Éteindre' },
+  start: { en: 'Start the stove', fr: 'Allumer le poêle' },
+  stop: { en: 'Stop the stove', fr: 'Éteindre le poêle' },
   small: { en: 'Small flame', fr: 'Petite flamme' },
   medium: { en: 'Medium flame', fr: 'Flamme moyenne' },
   large: { en: 'Large flame', fr: 'Grande flamme' },
@@ -203,14 +211,14 @@ export function stoveWidget(gladys, stove, config, language) {
             label: pick(T.stop, language),
             icon: 'power',
             style: 'danger',
-            action: { key: 'power', params: { on: 0 }, confirm: true },
+            action: { key: 'stop_stove', confirm: true },
           }
         : {
             type: 'button',
             label: pick(T.start, language),
             icon: 'power',
             style: 'primary',
-            action: { key: 'power', params: { on: 1 } },
+            action: { key: 'start_stove' },
           },
       flame(1, T.small),
       flame(2, T.medium),
@@ -220,15 +228,15 @@ export function stoveWidget(gladys, stove, config, language) {
 }
 
 /** Run a button of the "stove" widget; resolves the toast message. */
-export async function runStoveAction(stove, actionKey, params) {
+export async function runStoveAction(stove, actionKey) {
   if (!stove) {
     throw new Error('The stove is not configured');
   }
-  if (actionKey === 'power') {
-    if (Number(params?.on) === 1) {
-      await stove.start();
-      return { en: 'Starting the stove', fr: 'Allumage du poêle' };
-    }
+  if (actionKey === 'start_stove') {
+    await stove.start();
+    return { en: 'Starting the stove', fr: 'Allumage du poêle' };
+  }
+  if (actionKey === 'stop_stove') {
     await stove.stop();
     return { en: 'Stopping the stove', fr: 'Arrêt du poêle' };
   }

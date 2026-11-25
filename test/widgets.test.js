@@ -34,7 +34,7 @@ async function setup(client = new FakeClient()) {
   await bridge.start(config);
   gladys.onWidgetGet(WIDGET.STOVE, (options) => bridge.widget(WIDGET.STOVE, options));
   gladys.onWidgetGet(WIDGET.STATS, (options) => bridge.widget(WIDGET.STATS, options));
-  gladys.onWidgetAction(WIDGET.STOVE, (key, params) => bridge.widgetAction(key, params));
+  gladys.onWidgetAction(WIDGET.STOVE, (key) => bridge.widgetAction(key));
   return { gladys, bridge, client, config, clock, ids: gladys.externalIds(DEVICE_TYPE, SERIAL) };
 }
 
@@ -43,7 +43,9 @@ const byType = (content, type) => content.components.filter((component) => compo
 test('the picture follows the stove: off, flame I to III, logs in wood mode', () => {
   assert.equal(pictureOf(null), 'off');
   assert.equal(pictureOf({ state: '14', heat_level: 3 }), 'off');
-  assert.equal(pictureOf({ state: '2', heat_level: 3 }), 'l1');
+  assert.equal(pictureOf({ state: '2', heat_level: 3 }), 'ignition');
+  assert.equal(pictureOf({ state: '4', heat_level: 3 }), 'ignition');
+  assert.equal(pictureOf({ state: '6', heat_level: 2 }), 'off');
   assert.equal(pictureOf({ state: '5', heat_level: 2 }), 'l2');
   assert.equal(pictureOf({ state: '32', heat_level: 3 }), 'l3');
   assert.equal(pictureOf({ state: '9', heat_level: 1 }), 'wood');
@@ -67,7 +69,7 @@ test('stove widget: picture, fire and room tiles, state, four buttons, within bu
   assert.ok(success);
   const content = data.content;
   assert.deepEqual(validateWidgetContent(content), []);
-  assert.equal(byType(content, 'image')[0].key, 'stove-l2-v1');
+  assert.equal(byType(content, 'image')[0].key, 'stove-l2-v2');
   assert.deepEqual(
     byType(content, 'value').map((tile) => tile.device_feature),
     [ids.feature(FEATURE.SMOKE_TEMPERATURE), ids.feature(FEATURE.ROOM_TEMPERATURE)],
@@ -76,7 +78,7 @@ test('stove widget: picture, fire and room tiles, state, four buttons, within bu
   const buttons = byType(content, 'button');
   assert.deepEqual(
     buttons.map((button) => button.label),
-    ['Éteindre', 'Petite flamme', 'Flamme moyenne', 'Grande flamme'],
+    ['Éteindre le poêle', 'Petite flamme', 'Flamme moyenne', 'Grande flamme'],
   );
   assert.equal(buttons[0].action.confirm, true);
   assert.deepEqual(
@@ -93,8 +95,10 @@ test('stove widget buttons drive the stove', async () => {
     ['regulation.operation_mode', 0],
     ['regulation.fixed_power', 100],
   ]);
-  await gladys.fake.widgetAction(WIDGET.STOVE, 'power', { on: 0 });
+  await gladys.fake.widgetAction(WIDGET.STOVE, 'stop_stove', {});
   assert.deepEqual(client.sets.at(-1), ['misc.stop', 1]);
+  await gladys.fake.widgetAction(WIDGET.STOVE, 'start_stove', {});
+  assert.deepEqual(client.sets.at(-1), ['misc.start', 1]);
   const unknown = await gladys.fake.widgetAction(WIDGET.STOVE, 'turbo', {});
   assert.equal(unknown.success, false);
 });
@@ -104,12 +108,13 @@ test('a stopped stove offers to start; wood mode shows the logs', async () => {
   client.state.operating = { state: '14', substate: '0' };
   const { bridge, config, gladys } = await setup(client);
   let content = stoveWidget(gladys, bridge.stove, config, 'en');
-  assert.equal(byType(content, 'button')[0].label, 'Start');
-  assert.equal(byType(content, 'image')[0].key, 'stove-off-v1');
+  assert.equal(byType(content, 'button')[0].label, 'Start the stove');
+  assert.equal(byType(content, 'button')[0].action.key, 'start_stove');
+  assert.equal(byType(content, 'image')[0].key, 'stove-off-v2');
   client.state.operating = { state: '9', smoke_temp: '250' };
   await bridge.pollOnce();
   content = stoveWidget(gladys, bridge.stove, config, 'en');
-  assert.equal(byType(content, 'image')[0].key, 'stove-wood-v1');
+  assert.equal(byType(content, 'image')[0].key, 'stove-wood-v2');
 });
 
 test('the stove widget is refreshed when its look changes, not on every poll', async () => {
