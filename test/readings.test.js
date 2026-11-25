@@ -62,7 +62,10 @@ test('consumption: today, yesterday, this month and the year to date', () => {
     { days: daysPayload(days), months: monthsPayload(months) },
     new Date('2026-11-24T10:00:00'),
   );
-  assert.deepEqual(consumption, { day: 3.2, yesterday: 5.1, month: 30, year: 57 });
+  const { per_day: perDay, per_month: perMonth, ...totals } = consumption;
+  assert.deepEqual(totals, { day: 3.2, yesterday: 5.1, month: 30, year: 57 });
+  assert.equal(perDay.length, 31);
+  assert.deepEqual(perMonth, months);
 });
 
 test('on the 1st, yesterday is the last day of the previous month', () => {

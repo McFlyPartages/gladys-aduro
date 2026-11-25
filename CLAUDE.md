@@ -46,6 +46,8 @@ src/readings.js                   reply payloads -> readings, state labels (pure
 src/stove.js                      one stove: reach, poll, command follow-up, pellets, alerts
 src/prediction.js                 learned kg/h per heat level, run-out prediction (pure)
 src/device.js                     Stove -> Gladys device, states, commands
+src/widgets.js                    dashboard widgets "stove" and "stats", widget buttons, pictures
+scripts/render-stove.mjs          draws assets/stove-*.webp (npm run render); bump ASSETS_VERSION after
 src/bridge.js                     poll loop and publications (client, store, timers injected)
 src/store.js                      /data/state.json: pellet counters and switches
 gladys-assistant-integration.json manifest: name, config_schema, scene_triggers, image...

@@ -122,6 +122,9 @@ export function parseConsumption({ days, months }, today) {
     yesterday: perDay[yesterday.getDate() - 1] ?? 0,
     month: perMonth[month] ?? 0,
     year: Math.round(year * 1000) / 1000,
+    // Raw tables for the statistics widget: index = day of month - 1 / month.
+    per_day: perDay,
+    per_month: perMonth,
   };
 }
 

@@ -45,7 +45,7 @@ port **1901** and the stove answers to that port.
 | PIN code                  | Password of the stove (sticker)                                      | —         |
 | IP address                | Fixed IP of the stove; empty = search on the local network           | empty     |
 | Model                     | H1 to H6, used for the device name                                   | H2        |
-| Use the Aduro cloud relay | See section 6                                                        | off       |
+| Use the Aduro cloud relay | See section 7                                                        | off       |
 | Language of the states    | Language of the state texts and of the feature names of a new device | English   |
 | Hopper capacity (kg)      | Content of a full hopper                                             | 9.5       |
 | Low pellets alert (%)     | Level that fires "Stove pellets low"                                 | 10        |
@@ -128,7 +128,29 @@ pellets" is on, the prediction stops at the automatic stop level.
 What is learned is kept across restarts. The prediction relies on the hopper
 level: it is only right when "Pellets refilled" is pressed after each refill.
 
-## 5. Scenes
+## 5. Dashboard widgets
+
+Two widgets can be added from the dashboard editor.
+
+**Aduro stove**: a drawing of the stove whose fire moves with the heat level
+(small, medium or large flame), with logs burning in wood mode and a dark glass
+when the stove is off. Below it:
+
+- the **fire** (smoke) and **room** temperatures, live;
+- the state, the detail (ignition countdown) and the mode;
+- four buttons: **Start / Stop** (stopping asks for a confirmation), **Small
+  flame**, **Medium flame**, **Large flame**. A flame switches the stove to
+  heat level mode; the button of the current level is highlighted.
+
+**Aduro statistics**: pellets level (gauge), time left, consumption of the day,
+the month and the year, heat output; a chart of the pellets burnt **per day**
+(last 31 days) or **per month** (last 12 months), picked in the widget
+settings; then the run-out time ("≈" while it is not reliable), smoke and shaft
+temperatures, carbon monoxide (orange or red past the stove's thresholds),
+operating times, the ignitions and the consumption learned per level (kg/h),
+the pellets burnt since cleaning and the total.
+
+## 6. Scenes
 
 | Trigger                      | Variables                    |
 | ---------------------------- | ---------------------------- |
@@ -150,7 +172,7 @@ Examples:
 - **Scheduled heating**: at 6:30 on weekdays → set the target temperature to
   21 °C; at 10 pm → power off.
 
-## 6. Aduro cloud relay (optional)
+## 7. Aduro cloud relay (optional)
 
 Off by default. When you turn it on, a stove that cannot be reached locally is
 reached through the Aduro relay (`apprelay20.stokercloud.dk`), as the app does
@@ -162,7 +184,7 @@ In that mode the serial number, the PIN code and the commands travel
 relay on, turning "Prefer the local connection" off always goes through the
 cloud.
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom                     | What to check                                                      |
 | --------------------------- | ------------------------------------------------------------------ |
@@ -176,7 +198,7 @@ cloud.
 The integration logs (integration supervision screen of Gladys) detail every
 failure. The PIN code never appears in them.
 
-## 8. Limits
+## 9. Limits
 
 - The pellets run-out prediction only covers the heat level mode: the
   temperature mode one (heating / waiting cycles, weather forecast) is not

@@ -192,6 +192,7 @@ const TEXTS = {
     en: 'Learning ({hours} h of {min} h at level {level})',
     fr: 'Apprentissage ({hours} h sur {min} h à la puissance {level})',
   },
+  learningShort: { en: 'Learning ({hours}/{min} h)', fr: 'Apprentissage ({hours}/{min} h)' },
   temperature_mode: {
     en: 'Not available in temperature mode',
     fr: 'Non disponible en mode température',
@@ -210,11 +211,12 @@ const ROMAN = { 1: 'I', 2: 'II', 3: 'III' };
  * @param {string} language 'en' | 'fr'
  * @param {number} heatLevel
  * @param {string} [timeZone] defaults to the container's (TZ)
+ * @param {{ short?: boolean }} [options] short: ≤ 40 characters (widget status)
  */
-export function predictionText(prediction, language, heatLevel, timeZone) {
+export function predictionText(prediction, language, heatLevel, timeZone, { short = false } = {}) {
   const pick = (texts) => texts[language] ?? texts.en;
   if (prediction.status === 'learning') {
-    return pick(TEXTS.learning)
+    return pick(short ? TEXTS.learningShort : TEXTS.learning)
       .replace('{hours}', String(prediction.learnedHours))
       .replace('{min}', String(LEARNING.MIN_HOURS))
       .replace('{level}', ROMAN[heatLevel] ?? String(heatLevel));
@@ -230,5 +232,8 @@ export function predictionText(prediction, language, heatLevel, timeZone) {
     minute: '2-digit',
     ...(timeZone ? { timeZone } : {}),
   }).format(new Date(prediction.at));
+  if (short) {
+    return prediction.confidence === 'high' ? date : `≈ ${date}`;
+  }
   return `${date} (${pick(TEXTS[prediction.confidence])})`;
 }

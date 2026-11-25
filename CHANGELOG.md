@@ -25,5 +25,9 @@ the notes of the version's GitHub Release.
   forced fan and forced auger.
 - Pellets run-out prediction in heat level mode: the consumption of each
   level and of an ignition is learned while the stove burns.
+- Dashboard widgets: the stove, its fire animated at the current level (logs
+  in wood mode), fire and room temperatures, on/off and three flame buttons;
+  the statistics, pellets, consumption chart per day or per month, learned
+  consumption, run-out time, operating times, carbon monoxide.
 - Scene triggers: smoke too hot, wood fire dying, low pellets, stopped at low
   pellets, stove fault.

@@ -115,3 +115,19 @@ test('texts of the prediction feature', () => {
     'Not available in temperature mode',
   );
 });
+
+test('short texts fit the 40 characters of a widget status', () => {
+  const at = new Date('2026-11-25T22:30:00Z').getTime();
+  const texts = [
+    predictionText({ status: 'ok', at, confidence: 'medium' }, 'fr', 2, 'Europe/Paris', {
+      short: true,
+    }),
+    predictionText({ status: 'learning', learnedHours: 12.5 }, 'fr', 3, undefined, { short: true }),
+    predictionText({ status: 'temperature_mode' }, 'fr', 1, undefined, { short: true }),
+  ];
+  assert.equal(texts[0], '≈ mer. 25 nov., 23:30');
+  assert.ok(
+    texts.every((text) => text.length <= 40),
+    texts.join(' | '),
+  );
+});

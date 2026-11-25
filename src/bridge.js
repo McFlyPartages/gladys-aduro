@@ -15,6 +15,7 @@ import { createLogger } from '@gladysassistant/integration-sdk';
 import { NBE_PORT } from './protocol.js';
 import { Stove, TRANSPORT } from './stove.js';
 import { DEVICE_TYPE, buildDevice, buildStates, runCommand } from './device.js';
+import { WIDGET, pictureOf, runStoveAction, statsWidget, stoveWidget } from './widgets.js';
 
 const logger = createLogger({ name: 'bridge' });
 
@@ -62,6 +63,7 @@ export class Bridge {
     this.published = false;
     this.lastTransport = null;
     this.polling = null;
+    this.widgetSignature = null;
   }
 
   /** (Re)start with a normalized configuration. */
@@ -157,6 +159,7 @@ export class Bridge {
           await this.publishDevice();
         }
         await this.publishStates();
+        this.refreshWidgets();
       } else {
         await this.setStatus(false, MESSAGES.unreachable);
       }
@@ -252,6 +255,57 @@ export class Bridge {
     this.timer = this.timers.setTimeout(() => {
       this.pollOnce().catch((err) => logger.error('Poll failed', err));
     }, FAST_POLL_INTERVAL_MS);
+  }
+
+  /** Ask the dashboards to re-pull the stove widget when its look changed. */
+  refreshWidgets() {
+    const operating = this.stove?.data.operating;
+    const status = this.stove?.data.status;
+    if (!operating || !status) {
+      return;
+    }
+    const signature = [
+      pictureOf(operating),
+      operating.state,
+      operating.substate,
+      status.operation_mode,
+      operating.boiler_ref,
+    ].join('|');
+    if (signature !== this.widgetSignature) {
+      this.widgetSignature = signature;
+      try {
+        this.gladys.requestWidgetRefresh(WIDGET.STOVE);
+      } catch (err) {
+        logger.debug(`requestWidgetRefresh failed: ${err.message}`);
+      }
+    }
+  }
+
+  /** Content of a dashboard widget. */
+  widget(key, { language = 'en', settings = {} } = {}) {
+    const config = this.config ?? {};
+    if (key === WIDGET.STOVE) {
+      return stoveWidget(this.gladys, this.stove, config, language);
+    }
+    return statsWidget(
+      this.gladys,
+      this.stove,
+      config,
+      language,
+      settings,
+      this.now?.() ?? Date.now(),
+    );
+  }
+
+  /** A button of the stove widget; the next poll comes soon. */
+  async widgetAction(actionKey, params) {
+    const message = await runStoveAction(this.stove, actionKey, params);
+    await this.publishStates();
+    this.timers.clearTimeout(this.timer);
+    this.timer = this.timers.setTimeout(() => {
+      this.pollOnce().catch((err) => logger.error('Poll failed', err));
+    }, FAST_POLL_INTERVAL_MS);
+    return message;
   }
 
   async setStatus(connected, message) {

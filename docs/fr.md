@@ -48,7 +48,7 @@ requêtes depuis le port **1901** et le poêle répond vers ce port.
 | Code PIN                         | Mot de passe du poêle (étiquette)                                            | —         |
 | Adresse IP                       | IP fixe du poêle ; vide = recherche sur le réseau local                      | vide      |
 | Modèle                           | H1 à H6, utilisé pour le nom de l'appareil                                   | H2        |
-| Utiliser le relais cloud Aduro   | Voir la section 6                                                            | désactivé |
+| Utiliser le relais cloud Aduro   | Voir la section 7                                                            | désactivé |
 | Langue des états                 | Langue des textes d'état et des noms de fonctionnalités d'un nouvel appareil | anglais   |
 | Capacité de la trémie (kg)       | Contenu d'une trémie pleine                                                  | 9,5       |
 | Alerte granulés bas (%)          | Niveau qui déclenche « Granulés du poêle bas »                               | 10        |
@@ -138,7 +138,32 @@ Ce qui est appris est conservé en cas de redémarrage. La prédiction repose su
 le niveau de la trémie : elle n'est juste que si « Granulés rechargés » est
 utilisé à chaque remplissage.
 
-## 5. Scènes
+## 5. Widgets du tableau de bord
+
+Deux widgets s'ajoutent depuis l'éditeur du tableau de bord.
+
+**Poêle Aduro** : un dessin du poêle dont le feu bouge au rythme de la
+puissance (petite, moyenne ou grande flamme), avec des bûches qui brûlent en
+mode bois et la vitre éteinte quand le poêle est arrêté. Dessous :
+
+- la température du **foyer** (fumées) et la température **ambiante**, en
+  direct ;
+- l'état, le détail (compte à rebours d'allumage) et le mode ;
+- quatre boutons : **Allumer / Éteindre** (l'arrêt demande confirmation),
+  **Petite flamme**, **Flamme moyenne**, **Grande flamme**. Une flamme fait
+  passer le poêle en mode puissance ; le bouton de la puissance en cours est
+  mis en avant.
+
+**Statistiques Aduro** : niveau de granulés (jauge), autonomie, consommations
+du jour, du mois et de l'année, puissance de chauffe ; un graphique des
+granulés brûlés **par jour** (31 derniers jours) ou **par mois** (12 derniers
+mois), au choix dans les réglages du widget ; puis la fin des granulés prévue
+(« ≈ » tant qu'elle n'est pas fiable), les températures des fumées et du
+conduit, le monoxyde de carbone (orange ou rouge au-delà des seuils du poêle),
+les temps de fonctionnement, les allumages et la consommation apprise par
+puissance (kg/h), le brûlé depuis le nettoyage et le total.
+
+## 6. Scènes
 
 | Déclencheur                      | Variables                          |
 | -------------------------------- | ---------------------------------- |
@@ -160,7 +185,7 @@ Exemples :
 - **Chauffage programmé** : à 6 h 30 en semaine → régler la température de
   consigne à 21 °C ; à 22 h → éteindre.
 
-## 6. Relais cloud Aduro (facultatif)
+## 7. Relais cloud Aduro (facultatif)
 
 Désactivé par défaut. Si vous l'activez, un poêle injoignable en local est joint
 par le relais d'Aduro (`apprelay20.stokercloud.dk`), comme le fait
@@ -171,7 +196,7 @@ Dans ce mode, le numéro de série, le code PIN et les commandes circulent **en
 clair** sur Internet (le protocole n'est pas chiffré). Avec le relais activé,
 décocher « Préférer la connexion locale » fait toujours passer par le cloud.
 
-## 7. Dépannage
+## 8. Dépannage
 
 | Symptôme                   | Piste                                                                             |
 | -------------------------- | --------------------------------------------------------------------------------- |
@@ -185,7 +210,7 @@ décocher « Préférer la connexion locale » fait toujours passer par le cloud
 Les journaux de l'intégration (écran de supervision des intégrations de Gladys)
 détaillent chaque échec. Le code PIN n'y apparaît jamais.
 
-## 8. Limites
+## 9. Limites
 
 - La prédiction de fin des granulés ne couvre que le mode puissance : celle du
   mode température (cycles chauffe / attente, prévisions météo) n'est pas

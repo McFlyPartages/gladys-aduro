@@ -14,6 +14,7 @@ import { Bridge } from './src/bridge.js';
 import { StoveClient } from './src/client.js';
 import { normalizeConfig, sameConnection } from './src/config.js';
 import { Store } from './src/store.js';
+import { WIDGET, loadImage } from './src/widgets.js';
 
 const gladys = new GladysIntegration();
 
@@ -50,6 +51,12 @@ gladys.onSetValue(async (device, feature, value) => {
   logger.info(`onSetValue <- ${feature.external_id} = ${value}`);
   await bridge.setValue(feature, value);
 });
+
+// --- Dashboard widgets -------------------------------------------------------
+gladys.onWidgetGet(WIDGET.STOVE, (options) => bridge.widget(WIDGET.STOVE, options));
+gladys.onWidgetGet(WIDGET.STATS, (options) => bridge.widget(WIDGET.STATS, options));
+gladys.onWidgetGetImage((key) => loadImage(key));
+gladys.onWidgetAction(WIDGET.STOVE, (actionKey, params) => bridge.widgetAction(actionKey, params));
 
 // --- Device lifecycle --------------------------------------------------------
 // States sent before the user created the device were dropped by Gladys.

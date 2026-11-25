@@ -11,12 +11,20 @@
   "gladys_version": ">=5.1.0",
   "categories": ["climate"],
   "transports": ["local", "cloud"],
-  "network_discovery": [{ "type": "udp-active-broadcast", "ports": [8483] }],
+  "network_discovery": [
+    {
+      "type": "udp-active-broadcast",
+      "ports": [8483]
+    }
+  ],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Your stove", "fr": "Votre poêle" },
+      "label": {
+        "en": "Your stove",
+        "fr": "Votre poêle"
+      },
       "description": {
         "en": "The serial number and the PIN code are on the sticker of the stove, the same ones the Aduro Hybrid app asks for. Give a fixed IP address when the stove is on another network (VLAN) than Gladys: it cannot be found by broadcast then.",
         "fr": "Le numéro de série et le code PIN figurent sur l'étiquette du poêle : ce sont ceux que demande l'application Aduro Hybrid. Indiquez une adresse IP fixe si le poêle est sur un autre réseau (VLAN) que Gladys : il n'est alors pas trouvable par diffusion."
@@ -25,38 +33,92 @@
     {
       "key": "stove_serial",
       "type": "string",
-      "label": { "en": "Serial number", "fr": "Numéro de série" },
-      "placeholder": { "en": "123456", "fr": "123456" },
+      "label": {
+        "en": "Serial number",
+        "fr": "Numéro de série"
+      },
+      "placeholder": {
+        "en": "123456",
+        "fr": "123456"
+      },
       "required": true
     },
     {
       "key": "stove_pin",
       "type": "secret",
-      "label": { "en": "PIN code", "fr": "Code PIN" },
+      "label": {
+        "en": "PIN code",
+        "fr": "Code PIN"
+      },
       "required": true
     },
     {
       "key": "stove_ip",
       "type": "string",
-      "label": { "en": "IP address (optional)", "fr": "Adresse IP (facultative)" },
+      "label": {
+        "en": "IP address (optional)",
+        "fr": "Adresse IP (facultative)"
+      },
       "description": {
         "en": "Leave empty to find the stove on the local network.",
         "fr": "Laissez vide pour rechercher le poêle sur le réseau local."
       },
-      "placeholder": { "en": "192.168.1.50", "fr": "192.168.1.50" },
+      "placeholder": {
+        "en": "192.168.1.50",
+        "fr": "192.168.1.50"
+      },
       "required": false
     },
     {
       "key": "stove_model",
       "type": "select",
-      "label": { "en": "Model", "fr": "Modèle" },
+      "label": {
+        "en": "Model",
+        "fr": "Modèle"
+      },
       "options": [
-        { "value": "H1", "label": { "en": "H1", "fr": "H1" } },
-        { "value": "H2", "label": { "en": "H2", "fr": "H2" } },
-        { "value": "H3", "label": { "en": "H3", "fr": "H3" } },
-        { "value": "H4", "label": { "en": "H4 (not confirmed)", "fr": "H4 (non confirmé)" } },
-        { "value": "H5", "label": { "en": "H5", "fr": "H5" } },
-        { "value": "H6", "label": { "en": "H6 (not confirmed)", "fr": "H6 (non confirmé)" } }
+        {
+          "value": "H1",
+          "label": {
+            "en": "H1",
+            "fr": "H1"
+          }
+        },
+        {
+          "value": "H2",
+          "label": {
+            "en": "H2",
+            "fr": "H2"
+          }
+        },
+        {
+          "value": "H3",
+          "label": {
+            "en": "H3",
+            "fr": "H3"
+          }
+        },
+        {
+          "value": "H4",
+          "label": {
+            "en": "H4 (not confirmed)",
+            "fr": "H4 (non confirmé)"
+          }
+        },
+        {
+          "value": "H5",
+          "label": {
+            "en": "H5",
+            "fr": "H5"
+          }
+        },
+        {
+          "value": "H6",
+          "label": {
+            "en": "H6 (not confirmed)",
+            "fr": "H6 (non confirmé)"
+          }
+        }
       ],
       "required": false,
       "default": "H2"
@@ -64,7 +126,10 @@
     {
       "key": "cloud_relay",
       "type": "boolean",
-      "label": { "en": "Use the Aduro cloud relay", "fr": "Utiliser le relais cloud Aduro" },
+      "label": {
+        "en": "Use the Aduro cloud relay",
+        "fr": "Utiliser le relais cloud Aduro"
+      },
       "description": {
         "en": "Off by default. When on, a stove that cannot be reached locally is reached through the Aduro relay (apprelay20.stokercloud.dk), as the Aduro app does: the serial number and the PIN code then travel unencrypted over the Internet.",
         "fr": "Désactivé par défaut. Activé, un poêle injoignable en local est joint par le relais Aduro (apprelay20.stokercloud.dk), comme le fait l'application Aduro : le numéro de série et le code PIN circulent alors en clair sur Internet."
@@ -75,14 +140,29 @@
     {
       "key": "language",
       "type": "select",
-      "label": { "en": "Language of the states", "fr": "Langue des états" },
+      "label": {
+        "en": "Language of the states",
+        "fr": "Langue des états"
+      },
       "description": {
         "en": "Language of the state texts and of the feature names given to a new device.",
         "fr": "Langue des textes d'état et des noms de fonctionnalités donnés à un nouvel appareil."
       },
       "options": [
-        { "value": "en", "label": { "en": "English", "fr": "Anglais" } },
-        { "value": "fr", "label": { "en": "French", "fr": "Français" } }
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français"
+          }
+        }
       ],
       "required": false,
       "default": "en"
@@ -90,7 +170,10 @@
     {
       "key": "pellets",
       "type": "section",
-      "label": { "en": "Pellets", "fr": "Granulés" },
+      "label": {
+        "en": "Pellets",
+        "fr": "Granulés"
+      },
       "description": {
         "en": "What is left in the hopper is computed from the consumption the stove reports: press the \"Pellets refilled\" button of the device after filling it up.",
         "fr": "Le contenu restant de la trémie est calculé à partir de la consommation remontée par le poêle : appuyez sur le bouton « Granulés rechargés » de l'appareil après chaque remplissage."
@@ -99,7 +182,10 @@
     {
       "key": "pellet_capacity",
       "type": "number",
-      "label": { "en": "Hopper capacity (kg)", "fr": "Capacité de la trémie (kg)" },
+      "label": {
+        "en": "Hopper capacity (kg)",
+        "fr": "Capacité de la trémie (kg)"
+      },
       "min": 1,
       "max": 100,
       "required": false,
@@ -108,7 +194,10 @@
     {
       "key": "low_pellet_level",
       "type": "number",
-      "label": { "en": "Low pellets alert (%)", "fr": "Alerte granulés bas (%)" },
+      "label": {
+        "en": "Low pellets alert (%)",
+        "fr": "Alerte granulés bas (%)"
+      },
       "min": 0,
       "max": 100,
       "required": false,
@@ -117,7 +206,10 @@
     {
       "key": "shutdown_level",
       "type": "number",
-      "label": { "en": "Automatic stop level (%)", "fr": "Seuil d'arrêt automatique (%)" },
+      "label": {
+        "en": "Automatic stop level (%)",
+        "fr": "Seuil d'arrêt automatique (%)"
+      },
       "description": {
         "en": "Used when the \"Stop at low pellets\" switch of the device is on.",
         "fr": "Utilisé quand l'interrupteur « Arrêt si granulés bas » de l'appareil est activé."
@@ -130,7 +222,10 @@
     {
       "key": "alerts",
       "type": "section",
-      "label": { "en": "Temperature alerts", "fr": "Alertes de température" },
+      "label": {
+        "en": "Temperature alerts",
+        "fr": "Alertes de température"
+      },
       "description": {
         "en": "An alert fires the matching scene trigger once the temperature stayed past its threshold for the given duration.",
         "fr": "Une alerte déclenche le déclencheur de scène correspondant quand la température est restée au-delà du seuil pendant la durée indiquée."
@@ -139,7 +234,10 @@
     {
       "key": "high_smoke_temp",
       "type": "number",
-      "label": { "en": "Smoke too hot (°C)", "fr": "Fumées trop chaudes (°C)" },
+      "label": {
+        "en": "Smoke too hot (°C)",
+        "fr": "Fumées trop chaudes (°C)"
+      },
       "min": 300,
       "max": 450,
       "required": false,
@@ -148,7 +246,10 @@
     {
       "key": "high_smoke_duration",
       "type": "number",
-      "label": { "en": "Smoke too hot for (s)", "fr": "Fumées trop chaudes pendant (s)" },
+      "label": {
+        "en": "Smoke too hot for (s)",
+        "fr": "Fumées trop chaudes pendant (s)"
+      },
       "min": 10,
       "max": 1800,
       "required": false,
@@ -157,7 +258,10 @@
     {
       "key": "low_wood_temp",
       "type": "number",
-      "label": { "en": "Wood fire dying (°C)", "fr": "Feu de bois qui faiblit (°C)" },
+      "label": {
+        "en": "Wood fire dying (°C)",
+        "fr": "Feu de bois qui faiblit (°C)"
+      },
       "min": 20,
       "max": 200,
       "required": false,
@@ -166,7 +270,10 @@
     {
       "key": "low_wood_duration",
       "type": "number",
-      "label": { "en": "Wood fire dying for (s)", "fr": "Feu de bois qui faiblit pendant (s)" },
+      "label": {
+        "en": "Wood fire dying for (s)",
+        "fr": "Feu de bois qui faiblit pendant (s)"
+      },
       "min": 10,
       "max": 1800,
       "required": false,
@@ -175,7 +282,10 @@
     {
       "key": "manual",
       "type": "section",
-      "label": { "en": "Forced outputs", "fr": "Sorties forcées" },
+      "label": {
+        "en": "Forced outputs",
+        "fr": "Sorties forcées"
+      },
       "description": {
         "en": "Longest run of the \"Forced fan\" and \"Forced auger\" switches. The forced fan also stops above 320 °C of smoke.",
         "fr": "Durée maximale des interrupteurs « Ventilateur forcé » et « Vis sans fin forcée ». Le ventilateur forcé s'arrête aussi au-delà de 320 °C de fumées."
@@ -184,7 +294,10 @@
     {
       "key": "force_fan_duration",
       "type": "number",
-      "label": { "en": "Forced fan (s)", "fr": "Ventilateur forcé (s)" },
+      "label": {
+        "en": "Forced fan (s)",
+        "fr": "Ventilateur forcé (s)"
+      },
       "min": 1,
       "max": 900,
       "required": false,
@@ -193,7 +306,10 @@
     {
       "key": "force_auger_duration",
       "type": "number",
-      "label": { "en": "Forced auger (s)", "fr": "Vis sans fin forcée (s)" },
+      "label": {
+        "en": "Forced auger (s)",
+        "fr": "Vis sans fin forcée (s)"
+      },
       "min": 1,
       "max": 300,
       "required": false,
@@ -203,13 +319,19 @@
   "scene_triggers": [
     {
       "key": "high_smoke_temperature",
-      "label": { "en": "Stove smoke too hot", "fr": "Fumées du poêle trop chaudes" },
+      "label": {
+        "en": "Stove smoke too hot",
+        "fr": "Fumées du poêle trop chaudes"
+      },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Stove", "fr": "Poêle" },
+          "label": {
+            "en": "Stove",
+            "fr": "Poêle"
+          },
           "required": true
         }
       ],
@@ -217,19 +339,28 @@
         {
           "key": "temperature",
           "type": "number",
-          "label": { "en": "Smoke temperature", "fr": "Température des fumées" }
+          "label": {
+            "en": "Smoke temperature",
+            "fr": "Température des fumées"
+          }
         }
       ]
     },
     {
       "key": "low_wood_temperature",
-      "label": { "en": "Stove wood fire dying", "fr": "Feu de bois du poêle qui faiblit" },
+      "label": {
+        "en": "Stove wood fire dying",
+        "fr": "Feu de bois du poêle qui faiblit"
+      },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Stove", "fr": "Poêle" },
+          "label": {
+            "en": "Stove",
+            "fr": "Poêle"
+          },
           "required": true
         }
       ],
@@ -237,19 +368,28 @@
         {
           "key": "temperature",
           "type": "number",
-          "label": { "en": "Smoke temperature", "fr": "Température des fumées" }
+          "label": {
+            "en": "Smoke temperature",
+            "fr": "Température des fumées"
+          }
         }
       ]
     },
     {
       "key": "low_pellets",
-      "label": { "en": "Stove pellets low", "fr": "Granulés du poêle bas" },
+      "label": {
+        "en": "Stove pellets low",
+        "fr": "Granulés du poêle bas"
+      },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Stove", "fr": "Poêle" },
+          "label": {
+            "en": "Stove",
+            "fr": "Poêle"
+          },
           "required": true
         }
       ],
@@ -257,24 +397,36 @@
         {
           "key": "percentage",
           "type": "number",
-          "label": { "en": "Pellets level (%)", "fr": "Niveau de granulés (%)" }
+          "label": {
+            "en": "Pellets level (%)",
+            "fr": "Niveau de granulés (%)"
+          }
         },
         {
           "key": "remaining_kg",
           "type": "number",
-          "label": { "en": "Pellets left (kg)", "fr": "Granulés restants (kg)" }
+          "label": {
+            "en": "Pellets left (kg)",
+            "fr": "Granulés restants (kg)"
+          }
         }
       ]
     },
     {
       "key": "pellet_shutdown",
-      "label": { "en": "Stove stopped at low pellets", "fr": "Poêle arrêté faute de granulés" },
+      "label": {
+        "en": "Stove stopped at low pellets",
+        "fr": "Poêle arrêté faute de granulés"
+      },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Stove", "fr": "Poêle" },
+          "label": {
+            "en": "Stove",
+            "fr": "Poêle"
+          },
           "required": true
         }
       ],
@@ -282,24 +434,36 @@
         {
           "key": "percentage",
           "type": "number",
-          "label": { "en": "Pellets level (%)", "fr": "Niveau de granulés (%)" }
+          "label": {
+            "en": "Pellets level (%)",
+            "fr": "Niveau de granulés (%)"
+          }
         },
         {
           "key": "remaining_kg",
           "type": "number",
-          "label": { "en": "Pellets left (kg)", "fr": "Granulés restants (kg)" }
+          "label": {
+            "en": "Pellets left (kg)",
+            "fr": "Granulés restants (kg)"
+          }
         }
       ]
     },
     {
       "key": "stove_fault",
-      "label": { "en": "Stove fault", "fr": "Défaut du poêle" },
+      "label": {
+        "en": "Stove fault",
+        "fr": "Défaut du poêle"
+      },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Stove", "fr": "Poêle" },
+          "label": {
+            "en": "Stove",
+            "fr": "Poêle"
+          },
           "required": true
         }
       ],
@@ -307,9 +471,67 @@
         {
           "key": "state_code",
           "type": "number",
-          "label": { "en": "State code", "fr": "Code d'état" }
+          "label": {
+            "en": "State code",
+            "fr": "Code d'état"
+          }
         },
-        { "key": "state_label", "type": "string", "label": { "en": "State", "fr": "État" } }
+        {
+          "key": "state_label",
+          "type": "string",
+          "label": {
+            "en": "State",
+            "fr": "État"
+          }
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "stove",
+      "label": {
+        "en": "Aduro stove",
+        "fr": "Poêle Aduro"
+      },
+      "icon": "thermometer",
+      "settings": [],
+      "action_timeout_seconds": 30
+    },
+    {
+      "key": "stats",
+      "label": {
+        "en": "Aduro statistics",
+        "fr": "Statistiques Aduro"
+      },
+      "icon": "bar-chart-2",
+      "settings": [
+        {
+          "key": "period",
+          "type": "select",
+          "label": {
+            "en": "Chart",
+            "fr": "Graphique"
+          },
+          "options": [
+            {
+              "value": "days",
+              "label": {
+                "en": "Per day (last 31 days)",
+                "fr": "Par jour (31 derniers jours)"
+              }
+            },
+            {
+              "value": "months",
+              "label": {
+                "en": "Per month (last 12 months)",
+                "fr": "Par mois (12 derniers mois)"
+              }
+            }
+          ],
+          "required": false,
+          "default": "days"
+        }
       ]
     }
   ]

@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { DEFAULT_CONFIG, LIMITS, STOVE_MODELS } from '../src/config.js';
 import { NBE_PORT } from '../src/protocol.js';
+import { WIDGET } from '../src/widgets.js';
 
 const read = (path) => readFile(new URL(path, import.meta.url), 'utf8');
 const manifest = JSON.parse(await read('../gladys-assistant-integration.json'));
@@ -79,5 +80,23 @@ test('every scene trigger is fired by the code, and only those', async () => {
     }
     // The bridge adds the device to every event.
     assert.ok(trigger.fields.some((field) => field.key === 'device' && field.source === 'devices'));
+  }
+});
+
+test('every widget of the manifest has its handlers, and its texts are bilingual', async () => {
+  const index = await read('../index.js');
+  const keys = manifest.widgets.map((widget) => widget.key).sort();
+  assert.deepEqual(keys, Object.values(WIDGET).sort());
+  for (const name of Object.keys(WIDGET)) {
+    assert.ok(index.includes(`onWidgetGet(WIDGET.${name}`), `onWidgetGet for ${name}`);
+  }
+  for (const widget of manifest.widgets) {
+    const texts = [widget.label];
+    for (const setting of widget.settings ?? []) {
+      texts.push(setting.label, ...(setting.options ?? []).map((option) => option.label));
+    }
+    for (const text of texts) {
+      assert.ok(text.en && text.fr, `missing translation in widget ${widget.key}`);
+    }
   }
 });
