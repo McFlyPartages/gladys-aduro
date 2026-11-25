@@ -93,7 +93,8 @@ changements faits depuis l'application Aduro apparaissent dans Gladys.
 Températures (ambiante, fumées, conduit), puissance de chauffe (kW), monoxyde
 de carbone (ppm), état et détail en texte (avec compte à rebours pendant
 l'allumage), consommations (aujourd'hui, hier, mois, année, totale), granulés
-restants (% et kg), brûlé depuis le nettoyage, temps de fonctionnement du
+restants (% et kg), autonomie et fin des granulés prévue, brûlé depuis le
+nettoyage, temps de fonctionnement du
 poêle, de la vis et de l'allumage.
 
 Les valeurs sont relues toutes les 45 secondes, toutes les 5 secondes juste
@@ -110,6 +111,32 @@ la consommation qu'il remonte. Pour que le niveau reste juste :
 3. appuyez sur **Poêle nettoyé** après un nettoyage.
 
 Les compteurs et les interrupteurs sont conservés en cas de redémarrage.
+
+### Prédiction de fin des granulés (mode puissance)
+
+En mode puissance, deux fonctionnalités indiquent quand la trémie sera vide au
+niveau en cours :
+
+- **Autonomie en granulés** : heures restantes (utilisable dans les scènes) ;
+- **Fin des granulés prévue** : date et heure, avec « estimation » ou
+  « fiable ».
+
+L'intégration apprend toute seule la consommation de chaque niveau (I, II, III)
+pendant que le poêle brûle de façon stable : une mesure toutes les 30 minutes au
+même niveau, ou au changement de niveau après au moins 15 minutes. Elle apprend
+aussi ce que consomme un allumage, ajouté quand le poêle n'est pas encore en
+marche. Si « Arrêt si granulés bas » est activé, la prédiction s'arrête au
+seuil d'arrêt automatique.
+
+- Tant que le niveau en cours a moins de **2 heures** apprises, la
+  fonctionnalité affiche « Apprentissage (x h sur 2 h à la puissance II) ».
+- Au-delà de **10 heures** apprises au niveau en cours, et des mesures de moins
+  de 60 jours, la prédiction passe à « fiable ».
+- En mode température ou bois, elle affiche « Non disponible ».
+
+Ce qui est appris est conservé en cas de redémarrage. La prédiction repose sur
+le niveau de la trémie : elle n'est juste que si « Granulés rechargés » est
+utilisé à chaque remplissage.
 
 ## 5. Scènes
 
@@ -160,8 +187,9 @@ détaillent chaque échec. Le code PIN n'y apparaît jamais.
 
 ## 8. Limites
 
-- La prédiction de la date d'épuisement des granulés du module Home Assistant
-  n'est pas reprise.
+- La prédiction de fin des granulés ne couvre que le mode puissance : celle du
+  mode température (cycles chauffe / attente, prévisions météo) n'est pas
+  reprise.
 - Gladys n'a pas d'unité « kg » : les poids sont affichés sans unité, le nom de
   la fonctionnalité l'indique.
 - Un seul poêle par intégration.

@@ -3,7 +3,7 @@
 //
 // Port of the coordinator of the Home Assistant integration
 // (https://github.com/NewImproved/Aduro, MIT, Copyright (c) 2024 NewImproved),
-// without the pellet depletion prediction:
+// with the depletion prediction of the heat level mode only (src/prediction.js):
 //   - reach: fixed IP, else mediated discovery, else the Aduro cloud relay;
 //   - read: status + operating data on every poll, network and consumption
 //     every 5 minutes;
@@ -43,6 +43,7 @@ import {
   parseStatus,
   stateLabel,
 } from './readings.js';
+import { Learner } from './prediction.js';
 import { DEFAULT_STATE } from './store.js';
 
 const logger = createLogger({ name: 'stove' });
@@ -109,6 +110,7 @@ export class Stove {
     this.timers = timers;
 
     this.saved = { ...DEFAULT_STATE, ...saved };
+    this.learner = new Learner(this.saved.learning);
 
     this.host = null;
     this.transport = TRANSPORT.UNREACHABLE;
@@ -316,6 +318,7 @@ export class Stove {
 
   async process() {
     await this.followStates();
+    this.learn();
     await this.followChange();
     this.followTimers();
     await this.checkPellets();
@@ -510,10 +513,43 @@ export class Stove {
     this.saved.last_day_consumption = today;
     this.saved.last_day_date = date;
     if (increment > 0) {
+      this.learner.addConsumption(increment);
       this.saved.pellets_consumed = round(this.saved.pellets_consumed + increment, 3);
       this.saved.pellets_consumed_total = round(this.saved.pellets_consumed_total + increment, 3);
     }
     this.persist();
+  }
+
+  /** Feed the depletion prediction with the current state. */
+  learn() {
+    const learned = this.learner.observe({
+      state: this.data.operating.state,
+      heatLevel: this.data.operating.heat_level,
+      mode: this.data.status.operation_mode,
+      now: this.now(),
+    });
+    if (learned) {
+      this.saved.learning = this.learner.data;
+      this.persist();
+    }
+  }
+
+  /** When the pellets run out at the current heat level (heat level mode). */
+  prediction() {
+    if (!this.data.operating || !this.data.status) {
+      return null;
+    }
+    const { capacity, amount } = this.pellets();
+    // With the automatic stop on, the stove stops before the hopper is empty.
+    const reserve = this.saved.auto_shutdown ? (capacity * this.config.shutdown_level) / 100 : 0;
+    return this.learner.predict({
+      mode: this.data.status.operation_mode,
+      state: this.data.operating.state,
+      heatLevel: this.data.operating.heat_level,
+      pelletsLeft: amount,
+      reserve,
+      now: this.now(),
+    });
   }
 
   pellets() {

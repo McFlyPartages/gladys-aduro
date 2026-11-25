@@ -88,8 +88,8 @@ made from the Aduro app show up in Gladys.
 
 Temperatures (room, smoke, shaft), heat output (kW), carbon monoxide (ppm),
 state and detail as text (with a countdown during ignition), consumption
-(today, yesterday, month, year, total), pellets left (% and kg), burnt since
-cleaning, operating times of the stove, the auger and the ignition.
+(today, yesterday, month, year, total), pellets left (% and kg), pellets time
+left and run-out time, burnt since cleaning, operating times of the stove, the auger and the ignition.
 
 Values are read every 45 seconds, every 5 seconds right after a command.
 Consumption and network are read every 5 minutes.
@@ -104,6 +104,29 @@ from the consumption the stove reports. To keep the level right:
 3. press **Stove cleaned** after a cleaning.
 
 Counters and switches are kept across restarts.
+
+### Pellets run-out prediction (heat level mode)
+
+In heat level mode, two features tell when the hopper will be empty at the
+current level:
+
+- **Pellets time left**: hours left (usable in scenes);
+- **Pellets run out**: date and time, with "estimate" or "reliable".
+
+The integration learns by itself the consumption of each level (I, II, III)
+while the stove burns steadily: one measurement every 30 minutes at the same
+level, or on a level change after 15 minutes or more. It also learns what an
+ignition burns, added when the stove is not burning yet. When "Stop at low
+pellets" is on, the prediction stops at the automatic stop level.
+
+- While the current level has less than **2 hours** learned, the feature shows
+  "Learning (x h of 2 h at level II)".
+- Past **10 hours** learned at the current level, with measurements under 60
+  days old, the prediction becomes "reliable".
+- In temperature or wood mode, it shows "Not available".
+
+What is learned is kept across restarts. The prediction relies on the hopper
+level: it is only right when "Pellets refilled" is pressed after each refill.
 
 ## 5. Scenes
 
@@ -155,7 +178,9 @@ failure. The PIN code never appears in them.
 
 ## 8. Limits
 
-- The pellet depletion prediction of the Home Assistant module is not ported.
+- The pellets run-out prediction only covers the heat level mode: the
+  temperature mode one (heating / waiting cycles, weather forecast) is not
+  ported.
 - Gladys has no "kg" unit: weights are shown without a unit, the feature name
   says it.
 - One stove per integration.

@@ -44,6 +44,7 @@ src/protocol.js                   NBE frames (pure)
 src/client.js                     UDP client (socket factory injected), requests serialized
 src/readings.js                   reply payloads -> readings, state labels (pure)
 src/stove.js                      one stove: reach, poll, command follow-up, pellets, alerts
+src/prediction.js                 learned kg/h per heat level, run-out prediction (pure)
 src/device.js                     Stove -> Gladys device, states, commands
 src/bridge.js                     poll loop and publications (client, store, timers injected)
 src/store.js                      /data/state.json: pellet counters and switches

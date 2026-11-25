@@ -172,3 +172,14 @@ test('a poll asked during another one waits for it instead of overlapping', asyn
   await Promise.all([bridge.pollOnce(), bridge.pollOnce()]);
   assert.equal(client.requests.length - before, 2, 'status + operating, once');
 });
+
+test('the depletion prediction is published, learning first', async () => {
+  const { bridge, state } = await setup();
+  assert.equal(state(FEATURE.PELLETS_DEPLETION), 'Apprentissage (0 h sur 2 h à la puissance II)');
+  assert.equal(state(FEATURE.PELLETS_TIME_LEFT), undefined);
+  // 4 h learned at level II, 0.95 kg/h, the hopper full (9.5 kg).
+  bridge.stove.learner.data.levels[2] = { hours: 4, kg: 3.8, updated: bridge.stove.now() };
+  await bridge.publishStates();
+  assert.equal(state(FEATURE.PELLETS_TIME_LEFT), 10);
+  assert.match(state(FEATURE.PELLETS_DEPLETION), /\(estimation\)$/);
+});

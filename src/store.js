@@ -18,6 +18,8 @@ export const DEFAULT_STATE = {
   last_day_consumption: null,
   auto_shutdown: false,
   auto_resume_wood: false,
+  // What the depletion prediction learned, see src/prediction.js.
+  learning: null,
 };
 
 export class Store {

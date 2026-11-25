@@ -17,8 +17,9 @@ Start/stop, heat level, target temperature, operation mode (with retries until
 the stove applies the change), temperatures, heat output, carbon monoxide,
 state texts, consumption, pellets left, automatic stop at low pellets,
 automatic return to pellets after wood mode, forced fan and auger, scene
-triggers for the alerts. The pellet depletion prediction of the Home Assistant
-integration is not ported.
+triggers for the alerts, pellets run-out prediction in heat level mode. The
+temperature mode prediction of the Home Assistant integration (heating cycles,
+weather forecast) is not ported.
 
 ## Development
 
@@ -44,16 +45,17 @@ integration configuration screen in Gladys, not in environment variables.
 
 ## How it works
 
-| File              | Role                                                              |
-| ----------------- | ----------------------------------------------------------------- |
-| `src/protocol.js` | NBE frames: encoding, decoding, discovery replies (pyduro port)   |
-| `src/client.js`   | UDP exchanges with the stove, one at a time, with a timeout       |
-| `src/readings.js` | Values at their positions in the replies, state labels            |
-| `src/stove.js`    | Reaching the stove, command follow-up, pellets, alerts, wood mode |
-| `src/device.js`   | The stove as a Gladys device: features, states, commands          |
-| `src/bridge.js`   | Poll loop, publications to Gladys, scene events                   |
-| `src/store.js`    | Pellet counters and switches persisted under `/data`              |
-| `index.js`        | SDK wiring                                                        |
+| File                | Role                                                              |
+| ------------------- | ----------------------------------------------------------------- |
+| `src/protocol.js`   | NBE frames: encoding, decoding, discovery replies (pyduro port)   |
+| `src/client.js`     | UDP exchanges with the stove, one at a time, with a timeout       |
+| `src/readings.js`   | Values at their positions in the replies, state labels            |
+| `src/stove.js`      | Reaching the stove, command follow-up, pellets, alerts, wood mode |
+| `src/prediction.js` | Learned consumption per heat level, pellets run-out prediction    |
+| `src/device.js`     | The stove as a Gladys device: features, states, commands          |
+| `src/bridge.js`     | Poll loop, publications to Gladys, scene events                   |
+| `src/store.js`      | Pellet counters and switches persisted under `/data`              |
+| `index.js`          | SDK wiring                                                        |
 
 Integration containers run on a bridge network: the broadcast discovery is
 emitted by the Gladys core (`network_discovery`, `udp-active-broadcast` on port

@@ -13,6 +13,7 @@ import {
 } from '@gladysassistant/integration-sdk';
 import { OPERATION_MODE } from './readings.js';
 import { stateLabel, substateLabel } from './readings.js';
+import { predictionText } from './prediction.js';
 
 export const DEVICE_TYPE = 'stove';
 
@@ -31,6 +32,8 @@ export const FEATURE = {
   PELLETS_LEVEL: 'pellets-level',
   PELLETS_REMAINING: 'pellets-remaining',
   PELLETS_SINCE_CLEANING: 'pellets-since-cleaning',
+  PELLETS_TIME_LEFT: 'pellets-time-left',
+  PELLETS_DEPLETION: 'pellets-depletion',
   CONSUMPTION_TODAY: 'consumption-today',
   CONSUMPTION_YESTERDAY: 'consumption-yesterday',
   CONSUMPTION_MONTH: 'consumption-month',
@@ -73,6 +76,8 @@ const NAMES = {
     en: 'Burnt since cleaning (kg)',
     fr: 'Brûlé depuis le nettoyage (kg)',
   },
+  [FEATURE.PELLETS_TIME_LEFT]: { en: 'Pellets time left', fr: 'Autonomie en granulés' },
+  [FEATURE.PELLETS_DEPLETION]: { en: 'Pellets run out', fr: 'Fin des granulés prévue' },
   [FEATURE.CONSUMPTION_TODAY]: {
     en: 'Consumption today (kg)',
     fr: "Consommation aujourd'hui (kg)",
@@ -216,6 +221,12 @@ function featureDefinitions(language) {
     }),
     [FEATURE.PELLETS_REMAINING]: kilograms(),
     [FEATURE.PELLETS_SINCE_CLEANING]: kilograms(),
+    [FEATURE.PELLETS_TIME_LEFT]: hours(),
+    [FEATURE.PELLETS_DEPLETION]: sensor(CATEGORY.TEXT, TYPE.TEXT.TEXT, {
+      min: 0,
+      max: 0,
+      keep_history: false,
+    }),
     [FEATURE.CONSUMPTION_TODAY]: kilograms(),
     [FEATURE.CONSUMPTION_YESTERDAY]: kilograms(),
     [FEATURE.CONSUMPTION_MONTH]: kilograms(),
@@ -327,6 +338,11 @@ export function buildStates(gladys, stove, config) {
   put(FEATURE.PELLETS_LEVEL, pellets.percentage);
   put(FEATURE.PELLETS_REMAINING, pellets.amount);
   put(FEATURE.PELLETS_SINCE_CLEANING, pellets.consumed_total);
+  const prediction = stove.prediction();
+  if (prediction) {
+    put(FEATURE.PELLETS_TIME_LEFT, prediction.hours);
+    put(FEATURE.PELLETS_DEPLETION, predictionText(prediction, language, operating.heat_level));
+  }
   put(FEATURE.AUTO_SHUTDOWN, bool(stove.saved.auto_shutdown));
   put(FEATURE.AUTO_RESUME_WOOD, bool(stove.saved.auto_resume_wood));
   put(FEATURE.FORCE_FAN, bool(stove.forced.fan.active));

@@ -23,5 +23,7 @@ the notes of the version's GitHub Release.
   the hopper, with refill and cleaning buttons.
 - Automatic stop at low pellets, automatic return to pellets after wood mode,
   forced fan and forced auger.
+- Pellets run-out prediction in heat level mode: the consumption of each
+  level and of an ignition is learned while the stove burns.
 - Scene triggers: smoke too hot, wood fire dying, low pellets, stopped at low
   pellets, stove fault.
