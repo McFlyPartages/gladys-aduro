@@ -11,7 +11,8 @@ export const DEFAULT_CONFIG = {
   stove_pin: '',
   stove_ip: '',
   stove_model: 'H2',
-  cloud_relay: true,
+  // Off unless the user opts in: the PIN would cross the Internet in clear.
+  cloud_relay: false,
   language: 'en',
   pellet_capacity: 9.5,
   low_pellet_level: 10,
@@ -57,7 +58,7 @@ export function normalizeConfig(raw = {}) {
   config.stove_model = STOVE_MODELS.includes(raw.stove_model)
     ? raw.stove_model
     : DEFAULT_CONFIG.stove_model;
-  config.cloud_relay = raw.cloud_relay === undefined ? true : raw.cloud_relay !== false;
+  config.cloud_relay = raw.cloud_relay === true || raw.cloud_relay === 'true';
   config.language = raw.language === 'fr' ? 'fr' : 'en';
   for (const [key, limits] of Object.entries(LIMITS)) {
     config[key] = numberIn(raw[key], limits, DEFAULT_CONFIG[key]);

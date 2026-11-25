@@ -13,8 +13,8 @@ the notes of the version's GitHub Release.
 ### Added
 
 - Aduro H1 to H6 hybrid stoves over the local NBE protocol (UDP 8483): fixed IP
-  address, discovery on the local network through Gladys, or the Aduro cloud
-  relay as a fallback.
+  address or discovery on the local network through Gladys. The Aduro cloud
+  relay is an opt-in fallback, off by default.
 - Start and stop, heat level, target temperature and operation mode, with the
   change followed until the stove applies it and re-sent when it does not.
 - Temperatures (room, smoke, shaft), heat output, carbon monoxide, state and

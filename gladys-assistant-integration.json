@@ -66,11 +66,11 @@
       "type": "boolean",
       "label": { "en": "Use the Aduro cloud relay", "fr": "Utiliser le relais cloud Aduro" },
       "description": {
-        "en": "When the stove cannot be reached locally, go through the Aduro relay (apprelay20.stokercloud.dk), as the Aduro app does. The serial number and the PIN code then travel unencrypted over the Internet.",
-        "fr": "Quand le poêle est injoignable en local, passer par le relais Aduro (apprelay20.stokercloud.dk), comme le fait l'application Aduro. Le numéro de série et le code PIN circulent alors en clair sur Internet."
+        "en": "Off by default. When on, a stove that cannot be reached locally is reached through the Aduro relay (apprelay20.stokercloud.dk), as the Aduro app does: the serial number and the PIN code then travel unencrypted over the Internet.",
+        "fr": "Désactivé par défaut. Activé, un poêle injoignable en local est joint par le relais Aduro (apprelay20.stokercloud.dk), comme le fait l'application Aduro : le numéro de série et le code PIN circulent alors en clair sur Internet."
       },
       "required": false,
-      "default": true
+      "default": false
     },
     {
       "key": "language",

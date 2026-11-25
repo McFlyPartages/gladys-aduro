@@ -74,7 +74,7 @@ test('without an IP the stove is discovered through Gladys, by serial', async ()
 test('not found locally: the cloud relay, unless it is disabled', async () => {
   const client = new FakeClient();
   client.failing = true;
-  const cloud = setup({ client, discover: async () => [] });
+  const cloud = setup({ client, config: { cloud_relay: true }, discover: async () => [] });
   await cloud.stove.connect();
   assert.equal(cloud.stove.host, CLOUD_RELAY);
   assert.equal(cloud.stove.transport, TRANSPORT.CLOUD);
@@ -85,7 +85,7 @@ test('not found locally: the cloud relay, unless it is disabled', async () => {
 });
 
 test('"prefer local" off goes straight to the cloud relay', async () => {
-  const { stove } = setup({ config: { GLADYS_PREFER_LOCAL: false } });
+  const { stove } = setup({ config: { cloud_relay: true, GLADYS_PREFER_LOCAL: false } });
   await stove.poll();
   assert.equal(stove.host, CLOUD_RELAY);
   assert.equal(stove.transport, TRANSPORT.CLOUD);
@@ -306,4 +306,18 @@ test('commands are refused while the stove is unreachable', async () => {
   const { stove } = setup({ client, config: { cloud_relay: false } });
   await stove.poll();
   await assert.rejects(stove.start(), /unreachable/);
+});
+
+test('by default the cloud relay is never used', async () => {
+  const client = new FakeClient();
+  client.failing = true;
+  const { stove } = setup({
+    client,
+    config: { GLADYS_PREFER_LOCAL: false },
+    discover: async () => [],
+  });
+  await stove.poll();
+  assert.notEqual(stove.host, CLOUD_RELAY);
+  assert.equal(stove.transport, TRANSPORT.UNREACHABLE);
+  assert.ok(client.requests.every((host) => host !== CLOUD_RELAY));
 });

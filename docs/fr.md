@@ -1,84 +1,170 @@
 # Aduro
 
 Cette intégration pilote les poêles hybrides à granulés **Aduro H1, H2, H3 et
-H5** (H4 et H6 probables, non confirmés) depuis Gladys, en local, avec le même
-protocole que l'application Aduro Hybrid.
+H5** (H4 et H6 probables, non confirmés) depuis Gladys. Elle parle **en local**
+au poêle, avec le protocole de l'application Aduro Hybrid : rien ne passe par
+Internet, sauf si vous activez vous-même le relais cloud d'Aduro.
 
-## Avant de commencer
+## 1. Avant de commencer
 
-- Le poêle doit être connecté à votre Wi-Fi (via l'application Aduro Hybrid).
-- Relevez son **numéro de série** et son **code PIN** : ils figurent sur
-  l'étiquette du poêle et sont ceux que demande l'application.
-- Donnez de préférence au poêle une **adresse IP fixe** (réservation DHCP sur
-  votre box ou votre routeur).
+- Le poêle est connecté à votre Wi-Fi (configuré avec l'application Aduro
+  Hybrid).
+- Relevez son **numéro de série** et son **code PIN** : ils sont sur
+  l'étiquette du poêle, ce sont ceux que demande l'application.
+- Donnez au poêle une **adresse IP fixe** (réservation DHCP sur votre box ou
+  votre routeur). C'est indispensable si le poêle et Gladys ne sont pas sur le
+  même réseau.
+- Gladys 5.1.0 ou plus récent.
 
-## Configuration
+## 2. Réseau et pare-feu
 
-1. Dans Gladys, ouvrez **Intégrations → Aduro → Configuration**.
-2. Renseignez le numéro de série et le code PIN.
-3. **Adresse IP** : laissez vide pour que Gladys cherche le poêle sur le réseau
-   local. Si le poêle est sur un autre réseau (VLAN) que Gladys, la recherche ne
-   le trouvera pas : indiquez son adresse IP.
-4. Choisissez le modèle et la langue des textes d'état.
-5. Enregistrez, puis ouvrez l'onglet **Appareils** et ajoutez le poêle.
+Le poêle écoute en **UDP sur le port 8483**. L'intégration lui envoie ses
+requêtes depuis le port **1901** et le poêle répond vers ce port.
 
-### Relais cloud Aduro
+| Sens    | Source            | Destination       | Protocole |
+| ------- | ----------------- | ----------------- | --------- |
+| Requête | Gladys, port 1901 | Poêle, port 8483  | UDP       |
+| Réponse | Poêle, port 8483  | Gladys, port 1901 | UDP       |
 
-Si le poêle est injoignable en local, l'intégration passe par le relais
-d'Aduro (`apprelay20.stokercloud.dk`), comme l'application. Le badge de
-l'appareil indique alors « cloud ». Dans ce mode, le numéro de série et le code
-PIN circulent **en clair** sur Internet : désactivez « Utiliser le relais cloud
-Aduro » si vous ne le souhaitez pas. L'option « Préférer la connexion locale »
-désactivée fait passer directement par le relais.
+- **Même réseau** : rien à faire.
+- **Réseaux (VLAN) différents** : autorisez la requête de l'adresse IP de
+  Gladys vers celle du poêle (UDP 8483). Un pare-feu à états laisse repasser la
+  réponse. Si la vôtre est bloquée, ajoutez la règle de retour (poêle:8483 vers
+  Gladys:1901). Les intégrations tournent dans un conteneur Docker : vu du
+  pare-feu, la requête vient de l'adresse IP de la machine Gladys. Le port
+  source 1901 est normalement conservé par le NAT de Docker.
+- **Recherche automatique** : elle se fait par diffusion (broadcast) et ne
+  traverse pas les VLAN. Entre deux réseaux, saisissez l'adresse IP du poêle.
 
-### Réseau
+## 3. Installation et configuration
 
-Le poêle écoute en UDP sur le port **8483**. Si un pare-feu sépare Gladys du
-poêle, autorisez l'UDP de Gladys vers le poêle sur ce port (les réponses
-reviennent par la même session).
+1. Installez l'intégration **Aduro** depuis le catalogue des intégrations de
+   Gladys.
+2. Ouvrez **Configuration** et renseignez :
 
-## Ce que vous obtenez
+| Champ                            | Rôle                                                                         | Défaut    |
+| -------------------------------- | ---------------------------------------------------------------------------- | --------- |
+| Numéro de série                  | Identifie le poêle (étiquette)                                               | —         |
+| Code PIN                         | Mot de passe du poêle (étiquette)                                            | —         |
+| Adresse IP                       | IP fixe du poêle ; vide = recherche sur le réseau local                      | vide      |
+| Modèle                           | H1 à H6, utilisé pour le nom de l'appareil                                   | H2        |
+| Utiliser le relais cloud Aduro   | Voir la section 6                                                            | désactivé |
+| Langue des états                 | Langue des textes d'état et des noms de fonctionnalités d'un nouvel appareil | anglais   |
+| Capacité de la trémie (kg)       | Contenu d'une trémie pleine                                                  | 9,5       |
+| Alerte granulés bas (%)          | Niveau qui déclenche « Granulés du poêle bas »                               | 10        |
+| Seuil d'arrêt automatique (%)    | Niveau d'arrêt quand « Arrêt si granulés bas » est activé                    | 5         |
+| Fumées trop chaudes (°C / s)     | Seuil et durée de l'alerte de surchauffe                                     | 370 / 30  |
+| Feu de bois qui faiblit (°C / s) | Seuil et durée de l'alerte en mode bois                                      | 175 / 300 |
+| Ventilateur / vis forcés (s)     | Durée maximale des sorties forcées                                           | 60 / 15   |
 
-**Commandes** : marche/arrêt, puissance (I, II, III), température de consigne
-(5 à 35 °C), mode de fonctionnement (puissance, température, bois).
-Une puissance ou une consigne fait passer le poêle dans le mode correspondant.
-Si le poêle n'applique pas un changement, il est renvoyé jusqu'à trois fois.
+3. Enregistrez. Le statut de l'intégration passe à « connecté » quand le poêle
+   répond.
+4. Dans l'onglet **Appareils**, ajoutez le poêle et rangez-le dans une pièce.
 
-**Mesures** : température ambiante, des fumées et du conduit, puissance de
-chauffe, monoxyde de carbone, état et détail (avec compte à rebours pendant
-l'allumage), consommation (aujourd'hui, hier, mois, année, totale), temps de
-fonctionnement.
+Les seuils, la capacité et la langue s'appliquent sans redémarrage. Changer le
+numéro de série, le PIN ou l'adresse IP relance la connexion.
 
-**Granulés** : le poêle ne mesure pas le contenu de sa trémie. L'intégration
-le calcule à partir de la consommation : réglez la capacité de la trémie dans
-la configuration et appuyez sur **Granulés rechargés** après chaque
-remplissage, sur **Poêle nettoyé** après un nettoyage.
+## 4. L'appareil
 
-**Interrupteurs** :
+### Commandes
 
-- **Arrêt si granulés bas** : arrête le poêle au seuil d'arrêt automatique ;
-- **Reprise après le bois** : en mode puissance, repasse aux granulés quand le
-  feu de bois s'éteint (fumées sous 110 °C) ;
-- **Ventilateur forcé** et **Vis sans fin forcée** : mode manuel, arrêtés
-  après la durée configurée (et au-delà de 320 °C de fumées pour le
-  ventilateur).
+| Fonctionnalité          | Effet                                                                         |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| Marche                  | Démarre ou arrête le poêle                                                    |
+| Puissance               | I, II ou III ; passe le poêle en mode puissance                               |
+| Température de consigne | 5 à 35 °C ; passe le poêle en mode température                                |
+| Mode de fonctionnement  | Puissance, température ou bois                                                |
+| Arrêt si granulés bas   | Arrête le poêle au seuil d'arrêt automatique                                  |
+| Reprise après le bois   | En mode puissance, repasse aux granulés quand le feu de bois meurt (< 110 °C) |
+| Ventilateur forcé       | Mode manuel ; s'arrête après sa durée ou au-delà de 320 °C de fumées          |
+| Vis sans fin forcée     | Mode manuel ; s'arrête après sa durée                                         |
+| Granulés rechargés      | Remet la trémie à pleine capacité                                             |
+| Poêle nettoyé           | Remet à zéro « Brûlé depuis le nettoyage »                                    |
+| Reprendre les granulés  | Quitte le mode bois avec les réglages d'avant                                 |
+| Réarmer l'alarme        | Acquitte l'alarme du poêle                                                    |
 
-**Boutons** : granulés rechargés, poêle nettoyé, reprendre les granulés,
-réarmer l'alarme.
+Un changement de puissance, de consigne ou de mode est suivi jusqu'à ce que le
+poêle l'applique : il est renvoyé jusqu'à trois fois, puis abandonné après
+100 secondes ou si le poêle est arrêté par ailleurs (bouton, application). Les
+changements faits depuis l'application Aduro apparaissent dans Gladys.
 
-## Scènes
+### Mesures
 
-Déclencheurs disponibles : **fumées trop chaudes**, **feu de bois qui
-faiblit** (seuils et durées dans la configuration), **granulés bas**, **poêle
-arrêté faute de granulés** et **défaut du poêle** (code et libellé de l'état).
-Ils permettent par exemple d'envoyer un message quand le poêle s'arrête.
+Températures (ambiante, fumées, conduit), puissance de chauffe (kW), monoxyde
+de carbone (ppm), état et détail en texte (avec compte à rebours pendant
+l'allumage), consommations (aujourd'hui, hier, mois, année, totale), granulés
+restants (% et kg), brûlé depuis le nettoyage, temps de fonctionnement du
+poêle, de la vis et de l'allumage.
 
-## Limites
+Les valeurs sont relues toutes les 45 secondes, toutes les 5 secondes juste
+après une commande. Les consommations et le réseau sont relus toutes les
+5 minutes.
+
+### Les granulés
+
+Le poêle ne mesure pas sa trémie : l'intégration déduit le contenu restant de
+la consommation qu'il remonte. Pour que le niveau reste juste :
+
+1. réglez la **capacité de la trémie** ;
+2. appuyez sur **Granulés rechargés** après chaque remplissage complet ;
+3. appuyez sur **Poêle nettoyé** après un nettoyage.
+
+Les compteurs et les interrupteurs sont conservés en cas de redémarrage.
+
+## 5. Scènes
+
+| Déclencheur                      | Variables                          |
+| -------------------------------- | ---------------------------------- |
+| Fumées du poêle trop chaudes     | température                        |
+| Feu de bois du poêle qui faiblit | température                        |
+| Granulés du poêle bas            | niveau (%), granulés restants (kg) |
+| Poêle arrêté faute de granulés   | niveau (%), granulés restants (kg) |
+| Défaut du poêle                  | code d'état, libellé               |
+
+Chaque alerte ne se déclenche qu'une fois. Celle des fumées ne se réarme que
+lorsque la température est redescendue de 20 °C sous le seuil.
+
+Exemples :
+
+- **Rappel de recharge** : « Granulés du poêle bas » → envoyer un message
+  « Il reste {{triggerEvent.data.remaining_kg}} kg de granulés ».
+- **Défaut** : « Défaut du poêle » → envoyer un message avec
+  `{{triggerEvent.data.state_label}}`.
+- **Chauffage programmé** : à 6 h 30 en semaine → régler la température de
+  consigne à 21 °C ; à 22 h → éteindre.
+
+## 6. Relais cloud Aduro (facultatif)
+
+Désactivé par défaut. Si vous l'activez, un poêle injoignable en local est joint
+par le relais d'Aduro (`apprelay20.stokercloud.dk`), comme le fait
+l'application hors de chez vous. Le badge de l'appareil indique alors
+« cloud », et l'intégration réessaie le local toutes les 15 minutes.
+
+Dans ce mode, le numéro de série, le code PIN et les commandes circulent **en
+clair** sur Internet (le protocole n'est pas chiffré). Avec le relais activé,
+décocher « Préférer la connexion locale » fait toujours passer par le cloud.
+
+## 7. Dépannage
+
+| Symptôme                   | Piste                                                                             |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| « Le poêle ne répond pas » | Vérifiez l'adresse IP, le numéro de série et le PIN, puis le pare-feu (section 2) |
+| Aucun appareil à ajouter   | L'appareil n'apparaît qu'une fois que le poêle a répondu                          |
+| Badge « injoignable »      | Trois lectures ont échoué ; l'intégration relance la recherche toute seule        |
+| Badge « cloud » inattendu  | Le relais est activé et le local échoue : saisissez l'adresse IP                  |
+| « État inconnu (NN) »      | Code d'état non répertorié : notez-le et signalez-le                              |
+| Niveau de granulés faux    | Réglez la capacité, puis appuyez sur « Granulés rechargés » trémie pleine         |
+
+Les journaux de l'intégration (écran de supervision des intégrations de Gladys)
+détaillent chaque échec. Le code PIN n'y apparaît jamais.
+
+## 8. Limites
 
 - La prédiction de la date d'épuisement des granulés du module Home Assistant
   n'est pas reprise.
-- Les poids sont affichés sans unité (Gladys n'a pas d'unité « kg ») : le nom
-  de la fonctionnalité l'indique.
+- Gladys n'a pas d'unité « kg » : les poids sont affichés sans unité, le nom de
+  la fonctionnalité l'indique.
+- Un seul poêle par intégration.
 
 ## Origine
 
