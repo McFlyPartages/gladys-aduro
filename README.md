@@ -2,6 +2,8 @@
 
 **English** · [Français](README.fr.md)
 
+![Aduro for Gladys Assistant](docs/images/cover.png)
+
 [Gladys Assistant](https://gladysassistant.com/) external integration for
 Aduro hybrid pellet stoves (H1 to H6). Local first: Gladys talks to the stove
 with the NBE protocol of the Aduro Hybrid app (UDP 8483). The Aduro cloud
