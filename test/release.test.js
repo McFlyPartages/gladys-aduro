@@ -10,7 +10,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import * as prettier from 'prettier';
-import { bumpManifest, releaseNotes, rollChangelog } from '../.github/scripts/release.mjs';
+import {
+  bumpManifest,
+  changelogRepoUrl,
+  releaseNotes,
+  rollChangelog,
+} from '../.github/scripts/release.mjs';
 
 const REPO = 'https://github.com/me/my-integration';
 const manifestPath = fileURLToPath(
@@ -196,4 +201,14 @@ test('releaseNotes returns the section of a version', () => {
   assert.equal(releaseNotes(text, '1.0.1'), '- Thing.');
   assert.equal(releaseNotes(text, '1.0.0'), '');
   assert.equal(releaseNotes(text, '1.0'), '');
+});
+
+test('changelogRepoUrl reads the repository URL of the real changelog links', async () => {
+  const changelog = await readFile(changelogPath, 'utf8');
+  assert.equal(changelogRepoUrl(changelog), 'https://github.com/McFlyPartages/gladys-aduro');
+  assert.equal(
+    changelogRepoUrl('[Unreleased]: https://example.org/me/repo/commits/main\n'),
+    'https://example.org/me/repo',
+  );
+  assert.equal(changelogRepoUrl('# Changelog\n'), undefined);
 });

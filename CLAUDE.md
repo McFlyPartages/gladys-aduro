@@ -29,11 +29,12 @@ npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
 npx github:GladysAssistant/integration-store .   # store admission checks
+npm run release -- patch                  # release bump (minor, major, x.y.z), see Releasing
 ```
 
 The CI (`.github/workflows/ci.yml`) runs `format:check`, `lint` and `test` on
-Node 22 and 24, and builds the Docker image: run the three commands before
-pushing.
+Node 22 and 24, and builds the Docker image (on GitHub only): run the three
+commands before pushing.
 
 ## Architecture
 
@@ -53,8 +54,41 @@ src/store.js                      /data/state.json: pellet counters and switches
 gladys-assistant-integration.json manifest: name, config_schema, scene_triggers, image...
 docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
 test/                             node --test, against the SDK's fake Gladys and test/fixtures.js
-.github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
+.github/scripts/release.mjs       release bump (npm run release) and notes, tested in test/
 ```
+
+## Forgejo first, GitHub as a mirror
+
+The repository lives on Forgejo (`McFly/gladys-aduro`). A **push mirror**
+copies it to GitHub (`McFlyPartages/gladys-aduro`) on every push to Forgejo
+(branch or tag) and every 8 hours, **overwriting** GitHub: branches, tags and
+commits that exist only on GitHub are lost at the next sync. So:
+
+- Pull requests are opened and merged **on Forgejo only**. Never merge a pull
+  request, push or run a workflow that commits on GitHub.
+- GitHub is still where the public things happen: the store indexer reads its
+  default branch, its Actions build the image on `ghcr.io` and publish the
+  GitHub Releases. The image and Release jobs only run on GitHub
+  (`if: github.server_url == 'https://github.com'`); the Forgejo runner only
+  runs the lint and test jobs.
+
+## Releasing
+
+1. On a branch: `npm run release -- patch` (or `minor`, `major`, `x.y.z`). It
+   bumps `package.json`, `package-lock.json`, the manifest (`version` and the
+   `docker_image` tag) and moves `## [Unreleased]` of `CHANGELOG.md` under the
+   new version. Then `npm run format:check && npm test`, commit
+   `chore(release): x.y.z`, pull request on Forgejo.
+2. Once it is merged: tag the merge commit and push the tag to Forgejo,
+   `git tag -a vx.y.z -m "Release x.y.z" <commit> && git push origin vx.y.z`.
+3. The mirror brings the tag to GitHub, where `build.yml` publishes
+   `:x.y.z` + `:latest` and `github-release.yml` the GitHub Release. Check that
+   the image is anonymously pullable, then the store picks the version up at
+   its next indexing.
+
+Between the merge (step 1) and the image (step 3), GitHub's manifest points at
+an image that does not exist yet: an indexing run in that window rejects the
+integration until the next one. Push the tag right after the merge.
 
 ## Rules
 
@@ -72,7 +106,7 @@ test/                             node --test, against the SDK's fake Gladys and
   4 s and lets a longer command (mode + set point) go on.
 - **The container rootfs is read-only.** Write only under `/data`. Never log
   the PIN code.
-- **Versions belong to the Release workflow** (Actions → Release). Never edit
+- **Versions belong to `npm run release`** (see Releasing). Never edit
   `version` in `package.json` or in the manifest, nor the `docker_image` tag,
   by hand. `test/manifest.test.js` checks they agree.
 - **Changelog.** Every user-visible change adds a line under `## [Unreleased]`

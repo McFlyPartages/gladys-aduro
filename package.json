@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "node --test",
-    "render": "node scripts/render-stove.mjs"
+    "render": "node scripts/render-stove.mjs",
+    "release": "node .github/scripts/release.mjs bump"
   },
   "engines": {
     "node": ">=22"
