@@ -63,6 +63,10 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    # GitHub only: the repository lives on Forgejo and is push-mirrored to
+    # GitHub, whose runners publish the image to ghcr.io. The Forgejo runner
+    # has neither Docker nor the registry credentials.
+    if: github.server_url == 'https://github.com'
     name: Docker build
     steps:
       - name: Checkout

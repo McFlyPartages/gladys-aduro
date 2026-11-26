@@ -1,5 +1,13 @@
 // -----------------------------------------------------------------------------
-// Release helpers, run by the Release and GitHub releases workflows.
+// Release helpers.
+//
+//   npm run release -- <patch|minor|major|x.y.z>
+//   (node .github/scripts/release.mjs bump <patch|minor|major|x.y.z>)
+//     Run locally, on a branch: bumps package.json and package-lock.json (npm
+//     version), then does what `prepare` does, with the image name taken from
+//     the manifest and the repository URL from the changelog links. The bump
+//     goes through a pull request on Forgejo; the `vX.Y.Z` tag is pushed there
+//     once it is merged (see "Releasing" in CLAUDE.md).
 //
 //   node .github/scripts/release.mjs prepare <version> <docker-image> <repo-url>
 //     Points the manifest at the new release (`version` + `docker_image`, and
@@ -8,7 +16,7 @@
 //
 //   node .github/scripts/release.mjs notes <version> < CHANGELOG.md
 //     Prints the changelog section of <version> (nothing when there is none):
-//     the notes of its GitHub Release.
+//     the notes of its GitHub Release (github-release.yml).
 //
 // Both files are edited in place instead of being re-printed (jq,
 // JSON.stringify...), so the release commit keeps the Prettier layout and
@@ -17,6 +25,7 @@
 // -----------------------------------------------------------------------------
 
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -169,34 +178,87 @@ export function releaseNotes(text, version) {
   return text.slice(bodyStart, sectionEnd(text, bodyStart)).trim();
 }
 
+/**
+ * Repository URL of the changelog comparison links: the base of its
+ * `[Unreleased]: <url>/compare/...` line.
+ * @param {string} text - CHANGELOG.md content.
+ * @returns {string | undefined} The URL, e.g. https://github.com/me/repo.
+ */
+export function changelogRepoUrl(text) {
+  return /^\[Unreleased\]: (\S+?)\/(?:compare|releases|commits)\//m.exec(text)?.[1];
+}
+
+/**
+ * Point the manifest at a version and roll the changelog, in place.
+ * @param {string} version - Released version, e.g. 1.2.0.
+ * @param {string} dockerImage - Image of that version.
+ * @param {string} repoUrl - Repository URL of the changelog links.
+ */
+function prepare(version, dockerImage, repoUrl) {
+  writeFileSync(
+    MANIFEST_FILE,
+    bumpManifest(readFileSync(MANIFEST_FILE, 'utf8'), version, dockerImage),
+  );
+
+  if (existsSync(CHANGELOG_FILE)) {
+    const changelog = readFileSync(CHANGELOG_FILE, 'utf8');
+    const date = new Date().toISOString().slice(0, 10);
+    const rolled = rollChangelog(changelog, version, date, repoUrl);
+    if (rolled === changelog) {
+      console.log(
+        `::warning::${CHANGELOG_FILE} left as is: no "${UNRELEASED_HEADING}" section,` +
+          ` or ${version} is already listed`,
+      );
+    }
+    writeFileSync(CHANGELOG_FILE, rolled);
+  }
+}
+
+/**
+ * Local release bump: package.json + package-lock.json through `npm version`
+ * (it keeps their layout), then the manifest and the changelog.
+ * @param {string} release - patch, minor, major or an explicit x.y.z.
+ * @returns {string} The new version.
+ */
+function bump(release) {
+  const changelog = existsSync(CHANGELOG_FILE) ? readFileSync(CHANGELOG_FILE, 'utf8') : '';
+  const repoUrl = changelogRepoUrl(changelog);
+  if (changelog && !repoUrl) {
+    throw new Error(`${CHANGELOG_FILE}: no "[Unreleased]: <repo-url>/compare/..." link`);
+  }
+  const output = execFileSync('npm', ['version', release, '--no-git-tag-version'], {
+    encoding: 'utf8',
+  });
+  const version = output.trim().split('\n').pop().replace(/^v/, '');
+  const image = imageName(JSON.parse(readFileSync(MANIFEST_FILE, 'utf8')).docker_image);
+  prepare(version, `${image}:${version}`, repoUrl);
+  return version;
+}
+
 const isMain = import.meta.url === pathToFileURL(process.argv[1] ?? '').href;
 if (isMain) {
   const [command, version, ...args] = process.argv.slice(2);
-  if (!/^\d+\.\d+\.\d+$/.test(version ?? '')) {
-    console.error('Usage: release.mjs prepare <x.y.z> <docker-image> <repo-url>');
+  if (command === 'bump') {
+    if (!/^(patch|minor|major|\d+\.\d+\.\d+)$/.test(version ?? '')) {
+      console.error('Usage: npm run release -- <patch|minor|major|x.y.z>');
+      process.exit(1);
+    }
+    const released = bump(version);
+    console.log(`Bumped to ${released}. Next steps:`);
+    console.log('  npm run format:check && npm test');
+    console.log(
+      `  git commit -am "chore(release): ${released}" && git push  # then a PR on Forgejo`,
+    );
+    console.log(`  once merged: git tag -a v${released} -m "Release ${released}" <merge commit>`);
+    console.log(`               git push origin v${released}`);
+  } else if (!/^\d+\.\d+\.\d+$/.test(version ?? '')) {
+    console.error('Usage: release.mjs bump <patch|minor|major|x.y.z>');
+    console.error('       release.mjs prepare <x.y.z> <docker-image> <repo-url>');
     console.error('       release.mjs notes <x.y.z> < CHANGELOG.md');
     process.exit(1);
-  }
-
-  if (command === 'prepare') {
+  } else if (command === 'prepare') {
     const [dockerImage, repoUrl] = args;
-    writeFileSync(
-      MANIFEST_FILE,
-      bumpManifest(readFileSync(MANIFEST_FILE, 'utf8'), version, dockerImage),
-    );
-
-    if (existsSync(CHANGELOG_FILE)) {
-      const changelog = readFileSync(CHANGELOG_FILE, 'utf8');
-      const date = new Date().toISOString().slice(0, 10);
-      const rolled = rollChangelog(changelog, version, date, repoUrl);
-      if (rolled === changelog) {
-        console.log(
-          `::warning::${CHANGELOG_FILE} left as is: no "${UNRELEASED_HEADING}" section,` +
-            ` or ${version} is already listed`,
-        );
-      }
-      writeFileSync(CHANGELOG_FILE, rolled);
-    }
+    prepare(version, dockerImage, repoUrl);
   } else if (command === 'notes') {
     process.stdout.write(releaseNotes(readFileSync(0, 'utf8'), version));
   } else {

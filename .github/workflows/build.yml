@@ -2,10 +2,11 @@
 # Build & publish the multi-architecture image.
 #
 # Triggers:
-#   - a Git version tag (e.g. `v1.2.0`) pushed by hand -> release build;
+#   - a Git version tag (e.g. `v1.2.0`) -> release build. Tags are pushed to
+#     Forgejo and reach GitHub through the push mirror (see "Releasing" in
+#     CLAUDE.md): a mirror push triggers workflows, unlike GITHUB_TOKEN pushes;
 #   - a manual run (workflow_dispatch) on any branch -> test build;
-#   - called by the Release workflow (workflow_call) -> release build for the
-#     version it just bumped and tagged.
+#   - workflow_call -> release build of a given version (kept for reuse).
 # Result: an image pushed to the GitHub Container Registry (ghcr.io), for
 # linux/amd64 AND linux/arm64 (Raspberry Pi, etc.).
 #
@@ -27,9 +28,9 @@ on:
         description: 'Image tag to publish (defaults to the branch name)'
         required: false
         default: ''
-  # Called by release.yml after it bumps the version and pushes the tag.
-  # A tag pushed with the default GITHUB_TOKEN does NOT re-trigger the
-  # `push: tags` build above, so the Release workflow calls this one directly.
+  # For a caller workflow that pushes the tag itself with the default
+  # GITHUB_TOKEN (such a tag does NOT re-trigger `push: tags`). None today:
+  # releases come from a tag pushed to Forgejo and mirrored (see CLAUDE.md).
   workflow_call:
     inputs:
       version:
@@ -40,6 +41,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # GitHub only: the repository lives on Forgejo and is push-mirrored to
+    # GitHub, whose runners publish the image to ghcr.io. The Forgejo runner
+    # has neither Docker nor the registry credentials.
+    if: github.server_url == 'https://github.com'
     permissions:
       contents: read
       packages: write
@@ -47,8 +52,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          # Release build (called by release.yml): check out the tag it just
-          # created, otherwise the default checkout would be the pre-bump
+          # Release build (workflow_call): check out the tag of the version,
+          # otherwise the default checkout would be the pre-bump
           # commit and the image would bundle a stale manifest. Hand-pushed
           # tags and manual runs keep the default checkout.
           ref: ${{ inputs.version != '' && format('v{0}', inputs.version) || '' }}
@@ -76,9 +81,9 @@ jobs:
           # Detect a release build by the `version` input, NOT the event name:
           # inside a called (workflow_call) workflow, GITHUB_EVENT_NAME is the
           # caller's event ("workflow_dispatch"), so it cannot tell the two
-          # apart. The input is only set when release.yml calls us.
+          # apart. The input is only set by a workflow_call caller.
           if [ -n "$INPUT_VERSION" ]; then
-            # Release build driven by release.yml: it already bumped and tagged
+            # Release build driven by a caller: it already bumped and tagged
             # this exact version. Publish `:<version>` AND move `latest`.
             version="${INPUT_VERSION}"
             tags="${image}:${version},${image}:latest"
@@ -92,7 +97,7 @@ jobs:
             fi
             tags="${image}:${version}"
           else
-            # Hand-pushed tag `v1.2.0` -> 1.2.0
+            # Tag `v1.2.0` (pushed to Forgejo, mirrored) -> 1.2.0
             version="${GITHUB_REF_NAME#v}"
             tags="${image}:${version},${image}:latest"
           fi

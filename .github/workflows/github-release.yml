@@ -6,10 +6,11 @@
 # page there.
 #
 # Triggers:
-#   - called by the Release workflow, once the image of the new tag is pushed;
-#   - a `vX.Y.Z` tag pushed by hand;
+#   - a `vX.Y.Z` tag, pushed to Forgejo and mirrored to GitHub (it runs next
+#     to build.yml, so the Release may appear a few minutes before its image);
 #   - a manual run (workflow_dispatch), e.g. to back-fill the versions tagged
-#     before this workflow existed.
+#     before this workflow existed, or a Release turned into a draft;
+#   - workflow_call (kept for reuse).
 # Idempotent: it only creates the missing Releases, oldest first.
 #
 # The notes are the version's section of CHANGELOG.md, read from the tag
@@ -28,6 +29,10 @@ on:
 jobs:
   releases:
     runs-on: ubuntu-latest
+    # GitHub only: the repository lives on Forgejo and is push-mirrored to
+    # GitHub, whose runners publish the image to ghcr.io. The Forgejo runner
+    # has neither Docker nor the registry credentials.
+    if: github.server_url == 'https://github.com'
     permissions:
       contents: write # create the Releases
     # One run at a time, so two runs never create the same Release.
@@ -53,10 +58,19 @@ jobs:
           set -euo pipefail
 
           existing="$(gh release list --limit 1000 --json tagName --jq '.[].tagName')"
+          # A Release whose tag was deleted turns into a draft, and stays one
+          # when the tag comes back (a push mirror that briefly dropped it):
+          # publish those again instead of skipping them.
+          drafts="$(gh release list --limit 1000 --json tagName,isDraft --jq '.[] | select(.isDraft) | .tagName')"
           tags="$(git tag --list --sort=v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)"
           latest="$(tail -n1 <<<"$tags")"
 
           for tag in $tags; do
+            if grep -qxF "$tag" <<<"$drafts"; then
+              gh release edit "$tag" --draft=false --verify-tag
+              echo "Published the draft release $tag"
+              continue
+            fi
             if grep -qxF "$tag" <<<"$existing"; then
               continue
             fi
