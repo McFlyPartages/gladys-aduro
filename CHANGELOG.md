@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-26
+
 ### Added
 
 - Aduro H1 to H6 hybrid stoves over the local NBE protocol (UDP 8483): fixed IP
@@ -32,3 +34,6 @@ the notes of the version's GitHub Release.
 - Cover picture for the Gladys integration catalog and the README.
 - Scene triggers: smoke too hot, wood fire dying, low pellets, stopped at low
   pellets, stove fault.
+
+[Unreleased]: https://github.com/McFlyPartages/gladys-aduro/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/McFlyPartages/gladys-aduro/releases/tag/v1.0.0
